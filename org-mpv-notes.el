@@ -55,7 +55,8 @@ ARG is passed to `org-link-complete-file'."
   "Function to run to save image file to org buffer.
 Filename is passed as first argument. The function has to copy
 the file to proper location and insert a link to that file."
-  :type '(function))
+  :type '(function)
+  :group 'org-mpv-notes)
 
 ;; save screenshot as attachment
 (defun org-mpv-notes-save-screenshot ()
@@ -71,11 +72,13 @@ the file to proper location and insert a link to that file."
 
 (defcustom org-mpv-notes-ocr-command "tesseract"
   "OCR program to extract text from mpv screenshot."
-  :type '(string))
+  :type '(string)
+  :group 'org-mpv-notes)
 
 (defcustom org-mpv-notes-ocr-command-args "-"
   "Extra arguments to pass to ocr-command after the input image file."
-  :type '(string))
+  :type '(string)
+  :group 'org-mpv-notes)
 
 (defun org-mpv-notes-ocr-on-file (file)
   "Run tesseract OCR on the screenshot FILE."
