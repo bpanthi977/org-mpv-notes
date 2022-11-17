@@ -43,7 +43,7 @@ ARG is passed to `org-link-complete-file'."
 (add-hook 'org-open-at-point-functions #'mpv-seek-to-position-at-point)
 
 (defun org-mpv-notes-save-as-attach (file)
-  "Save image FILE to org file using org-attach."
+  "Save image FILE to org file using `org-attach'."
   ;; attach it
   (let ((org-attach-method 'mv))
     (org-attach-attach file))
@@ -53,7 +53,7 @@ ARG is passed to `org-link-complete-file'."
 (defcustom org-mpv-notes-save-image-function
   #'org-mpv-notes-save-as-attach
   "Function to run to save image file to org buffer.
-Filename is passed as first argument. The function has to copy
+Filename is passed as first argument.  The function has to copy
 the file to proper location and insert a link to that file."
   :type '(function)
   :group 'org-mpv-notes)
