@@ -6,7 +6,7 @@
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
 ;; Version: 0.0.1
-;; Package-Requires: ((counsel "0.13.4") (emacs "27.1") (mpv "0.2.0"))
+;; Package-Requires: ((emacs "27.1") (mpv "0.2.0"))
 ;; Kewords: mpv, org
 
 ;; This file in not part of GNU Emacs
@@ -25,7 +25,6 @@
 
 ;;; Code:
 (require 'cl-lib)
-(require 'counsel)
 (require 'mpv)
 (require 'org-attach)
 (require 'org-element)
@@ -43,6 +42,21 @@ ARG is passed to `org-link-complete-file'."
 (org-link-set-parameters "mpv" :complete #'org-mpv-notes-complete-link :follow #'mpv-play)
 (add-hook 'org-open-at-point-functions #'mpv-seek-to-position-at-point)
 
+(defun org-mpv-notes-save-as-attach (file)
+  "Save image FILE to org file using org-attach."
+  ;; attach it
+  (let ((org-attach-method 'mv))
+    (org-attach-attach file))
+  ;; insert the link
+  (insert "[[attachment:" (file-name-base file) "." (file-name-extension file) "]]"))
+
+(defcustom org-mpv-notes-save-image-function
+  #'org-mpv-notes-save-as-attach
+  "Function to run to save image file to org buffer.
+Filename is passed as first argument. The function has to copy
+the file to proper location and insert a link to that file."
+  :type '(function))
+
 ;; save screenshot as attachment
 (defun org-mpv-notes-save-screenshot ()
   "Save screenshot of current frame as attachment."
@@ -52,24 +66,26 @@ ARG is passed to `org-link-complete-file'."
     (mpv-run-command "screenshot-to-file"
                      filename
                      "video")
-    ;; attach it
-    (let ((org-attach-method 'mv))
-      (org-attach-attach filename))
-    ;; insert the link
-    (insert "[[attachment:" (file-name-base filename) ".png]]")
+    (funcall org-mpv-notes-save-image-function filename)
     (org-display-inline-images)))
 
-(defun org-mpv-notes-tesseract-on-file (file)
+(defcustom org-mpv-notes-ocr-command "tesseract"
+  "OCR program to extract text from mpv screenshot."
+  :type '(string))
+
+(defcustom org-mpv-notes-ocr-command-args "-"
+  "Extra arguments to pass to ocr-command after the input image file."
+  :type '(string))
+
+(defun org-mpv-notes-ocr-on-file (file)
   "Run tesseract OCR on the screenshot FILE."
-  (save-window-excursion
-    (let ((buffer (generate-new-buffer "tesseract-ocr"))
-          (errbuffer (generate-new-buffer "tesseract-ocr-err")))
-      (shell-command (format "tesseract \"%s\" -" (file-truename file) ) buffer errbuffer)
-      (let ((string (with-current-buffer  buffer
-                      (buffer-string))))
-        (kill-buffer buffer)
-        (kill-buffer errbuffer)
-        (remove ? string)))))
+  (unless (executable-find org-mpv-notes-ocr-command) ;; a defcustom
+    (user-error "OCR program %S not found" org-mpv-notes-ocr-command))
+  (with-temp-buffer
+    (if (zerop (call-process org-mpv-notes-ocr-command nil t nil
+                             (file-truename file) org-mpv-notes-ocr-command-args))
+        (remove ? (buffer-string))
+      (error "OCR command failed: %S" (buffer-string)))))
 
 (defun org-mpv-notes-screenshot-ocr ()
   "Take screenshot, run OCR on it and insert the text to org buffer."
@@ -79,15 +95,17 @@ ARG is passed to `org-link-complete-file'."
     (mpv-run-command "screenshot-to-file"
                      filename
                      "video")
-    (let ((string (org-mpv-notes-tesseract-on-file filename)))
+    (let ((string (org-mpv-notes-ocr-on-file filename)))
       (insert "\n"
               string
               "\n"))))
 
+(defvar org-mpv-notes-timestamp-regex "[0-9]+:[0-9]+:[0-9]+")
+
 (defun org-mpv-notes-next-timestamp ()
   "Seek to next timestamp in the notes file."
   (interactive)
-  (when (re-search-forward "[0-9]+:[0-9]+:[0-9]+" nil t)
+  (when (re-search-forward org-mpv-notes-timestamp-regex nil t)
     (mpv-seek-to-position-at-point)
     (org-show-entry)
     (recenter)))
@@ -95,7 +113,7 @@ ARG is passed to `org-link-complete-file'."
 (defun org-mpv-notes-previous-timestamp ()
   "Seek to previous timestamp in the notes file."
   (interactive)
-  (when (re-search-backward "[0-9]+:[0-9]+:[0-9]+" nil t)
+  (when (re-search-backward org-mpv-notes-timestamp-regex nil t)
     (mpv-seek-to-position-at-point)
     (org-show-entry)
     (recenter)))
@@ -132,19 +150,17 @@ ARG is passed to `org-link-complete-file'."
 
 (defun org-mpv-notes--video-arg (path)
   "Video arg corresponding to PATH in [[mpv:...]] link."
-  (if (or (string-prefix-p path "http:")
-          (string-prefix-p path "https:"))
+  (if (string-match-p "^https?:" path)
       path
     (expand-file-name path
                       (file-name-directory (file-truename (buffer-file-name))))))
 
 (defun org-mpv-notes--org-link-description (element)
   "Get description from a org link ELEMENT."
-  (let ((begin (org-element-property :contents-begin element))
-        (end (org-element-property :contents-end element)))
-    (if (and begin end)
-        (buffer-substring-no-properties begin end)
-      "")))
+  (if-let ((begin (org-element-property :contents-begin element))
+           (end (org-element-property :contents-end element)))
+      (buffer-substring-no-properties begin end)
+    ""))
 
 (defun org-mpv-notes-open ()
   "Find and open mpv: link."
@@ -168,7 +184,7 @@ ARG is passed to `org-link-complete-file'."
                  (mpv-kill)
                  (sleep-for 0.05)
                  (mpv-start path)))
-          (when (string-match "^[0-9]+:[0-9]+:[0-9]+" description)
+          (when (string-match (concat "^" org-mpv-notes-timestamp-regex) description)
             (with-temp-buffer
               (insert description)
               (mpv-seek-to-position-at-point))))))))
