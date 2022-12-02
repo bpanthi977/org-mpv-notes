@@ -11,7 +11,7 @@
 
 ;; This file in not part of GNU Emacs
 
-;;; License: MIT
+;;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
 
