@@ -144,6 +144,14 @@ the file to proper location and insert a link to that file."
   (setf mpv-seek-step (/ mpv-seek-step 2.0))
   (message "%f" mpv-seek-step))
 
+(defun org-mpv-speed-up ()
+  (interactive)
+  (mpv-set-property "speed" (* 1.1 (mpv-get-property "speed"))))
+
+(defun org-mpv-speed-down ()
+  (interactive)
+  (mpv-set-property "speed" (/ (mpv-get-property "speed") 1.1)))
+
 (defun org-mpv-notes-toggle-fullscreen ()
   "Ask mpv to toggle fullscreen."
   (interactive)
