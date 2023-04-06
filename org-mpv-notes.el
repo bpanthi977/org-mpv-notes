@@ -214,13 +214,35 @@ the file to proper location and insert a link to that file."
   (org-insert-heading)
   (save-excursion
     (org-insert-property-drawer)
-    (org-set-property "time" (org-timer-secs-to-hms (round (mpv-get-playback-position))))))
+    (org-set-property "time" (org-timer-secs-to-hms (round (mpv-get-playback-position))))
+    (org-set-property "mpv_path" (org-timer-secs-to-hms (round (mpv-get-property "path"))))))
+
+(defun org-mpv-notes-insert-link ()
+  (interactive)
+  (let* ((path (mpv-get-property "path"))
+         (time (mpv-get-playback-position))
+
+         (h (floor (/ time 3600)))
+         (m (floor (/ (mod time 3600) 60)))
+         (s (floor (mod time 60)))
+         (timestamp (format "%s:%s:%s" h m s)))
+    (insert "[[" path "::" timestamp "][" timestamp "]]")))
+
+(defun org-mpv-notes-replace-timestamp-with-link (link)
+  (interactive "sLink:")
+  (save-excursion
+    (while (re-search-forward org-mpv-notes-timestamp-regex nil t)
+      (skip-chars-backward ":[:digit:]" (point-at-bol))
+      (looking-at org-mpv-notes-timestamp-regex)
+      (let ((timestamp (match-string 0)))
+        (delete-region (match-beginning 0) (match-end 0))
+        (insert "[[" link "::" timestamp "][" timestamp "]]")))))
 
 ;;;###autoload
 (define-minor-mode org-mpv-notes
   "Org minor mode for Note taking alongside audio and video.
 Uses mpv.el to control mpv process"
-  :keymap `((,(kbd "M-n i") . mpv-insert-playback-position)
+  :keymap `((,(kbd "M-n i") . org-mpv-notes-insert-link)
             (,(kbd "M-n M-i") . org-mpv-notes-insert-note)
             (,(kbd "M-n u") . mpv-revert-seek)
             (,(kbd "M-n s") . org-mpv-notes-save-screenshot)
