@@ -39,7 +39,7 @@ ARG is passed to `org-link-complete-file'."
    "file:" "mpv:"
    (org-link-complete-file arg)
    t t))
-(org-link-set-parameters "mpv" :complete #'org-mpv-notes-complete-link :follow #'mpv-play)
+(org-link-set-parameters "mpv" :complete #'org-mpv-notes-complete-link :follow #'org-mpv-notes-play)
 (add-hook 'org-open-at-point-functions #'mpv-seek-to-position-at-point)
 
 (defun org-mpv-notes-save-as-attach (file)
@@ -165,6 +165,26 @@ the file to proper location and insert a link to that file."
       (buffer-substring-no-properties begin end)
     ""))
 
+(defun org-mpv-notes-play (path &optional arg)
+  ;; see example
+  (let (search-option)
+    (when (string-match "::\\(.*\\)\\'" path)
+      (setq search-option (match-string 1 path))
+      (setq path (replace-match "" nil nil path)))
+    (cond ((not (mpv-live-p))
+           (mpv-start path))
+          ((not (string-equal (mpv-get-property "path") path))
+           (mpv-kill)
+           (sleep-for 0.05)
+           (mpv-start path)))
+    (cond ((string-match (concat "^" org-mpv-notes-timestamp-regex) search-option)
+           (let ((secs (org-timer-hms-to-secs search-option)))
+             (when (>= secs 0)
+               (mpv-seek secs))))
+          ((string-match "^\\([0-9]+\\)$" search-option)
+           (let ((secs (string-to-number search-option)))
+             (mpv-seek 0))))))
+
 (defun org-mpv-notes-open ()
   "Find and open mpv: link."
   (interactive)
@@ -178,19 +198,7 @@ the file to proper location and insert a link to that file."
       (when pos
         ;; when link is found play it
         (forward-char)
-        (let* ((element (org-element-context))
-               (path (org-element-property :path element))
-               (description (org-mpv-notes--org-link-description element)))
-          (cond ((not (mpv-live-p))
-                 (mpv-start path))
-                ((not (string-equal (mpv-get-property "path") path))
-                 (mpv-kill)
-                 (sleep-for 0.05)
-                 (mpv-start path)))
-          (when (string-match (concat "^" org-mpv-notes-timestamp-regex) description)
-            (with-temp-buffer
-              (insert description)
-              (mpv-seek-to-position-at-point))))))))
+        (org-mpv-notes-play (org-element-context))))))
 
 (defun org-mpv-notes-insert-note ()
   "Insert a heading with timestamp."
