@@ -225,8 +225,10 @@ the file to proper location and insert a link to that file."
          (h (floor (/ time 3600)))
          (m (floor (/ (mod time 3600) 60)))
          (s (floor (mod time 60)))
-         (timestamp (format "%s:%s:%s" h m s)))
-    (insert "[[" path "::" timestamp "][" timestamp "]]")))
+         (timestamp (format "%02d:%02d:%02d" h m s))
+		 (name (read-string "Description: ")))
+    (insert "[[mpv:" path "::" timestamp "][" name "]]")))
+
 
 (defun org-mpv-notes-replace-timestamp-with-link (link)
   (interactive "sLink:")
