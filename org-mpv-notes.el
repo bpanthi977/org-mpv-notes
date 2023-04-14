@@ -207,18 +207,7 @@ the file to proper location and insert a link to that file."
         ;; when link is found play it
         (forward-char)
         (org-mpv-notes-play (org-element-context))))))
-
-(defun org-mpv-notes-insert-note ()
-  "Insert a heading with timestamp."
-  (interactive)
-  (org-insert-heading)
-  (save-excursion
-    (org-insert-property-drawer)
-    (org-set-property "time" (org-timer-secs-to-hms (round (mpv-get-playback-position))))
-    (org-set-property "mpv_path" (org-timer-secs-to-hms (round (mpv-get-property "path"))))))
-
-(defun org-mpv-notes-insert-link ()
-  (interactive)
+(cl-defun org-mpv-notes-create-link (&optional (read-description t))
   (let* ((path (mpv-get-property "path"))
          (time (mpv-get-playback-position))
 
@@ -226,9 +215,24 @@ the file to proper location and insert a link to that file."
          (m (floor (/ (mod time 3600) 60)))
          (s (floor (mod time 60)))
          (timestamp (format "%02d:%02d:%02d" h m s))
-		 (name (read-string "Description: ")))
-    (insert "[[mpv:" path "::" timestamp "][" name "]]")))
+         (description (if read-description
+                          (read-string "Description: ")
+                        "")))
+    (when (string-equal description "")
+      (setf description timestamp))
+    (concat "[[mpv:" path "::" timestamp "][" description "]]")))
 
+(defun org-mpv-notes-insert-note ()
+  "Insert a heading with timestamp."
+  (interactive)
+  (org-insert-heading)
+  (save-excursion
+    (org-insert-property-drawer)
+    (org-set-property "mpv_link" (org-mpv-notes-create-link nil))))
+
+(defun org-mpv-notes-insert-link ()
+  (interactive)
+  (insert (org-mpv-notes-create-link t)))
 
 (defun org-mpv-notes-replace-timestamp-with-link (link)
   (interactive "sLink:")
