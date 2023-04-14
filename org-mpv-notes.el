@@ -185,7 +185,8 @@ the file to proper location and insert a link to that file."
            (mpv-kill)
            (sleep-for 0.05)
            (mpv-start path)))
-    (cond ((string-match (concat "^" org-mpv-notes-timestamp-regex) search-option)
+    (cond ((null search-option) nil)
+          ((string-match (concat "^" org-mpv-notes-timestamp-regex) search-option)
            (let ((secs (org-timer-hms-to-secs search-option)))
              (when (>= secs 0)
                (mpv-seek secs))))
@@ -206,7 +207,8 @@ the file to proper location and insert a link to that file."
       (when pos
         ;; when link is found play it
         (forward-char)
-        (org-mpv-notes-play (org-element-context))))))
+        (org-open-at-point)))))
+
 (cl-defun org-mpv-notes-create-link (&optional (read-description t))
   (let* ((path (mpv-get-property "path"))
          (time (mpv-get-playback-position))
