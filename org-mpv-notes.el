@@ -225,7 +225,7 @@ the file to proper location and insert a link to that file."
 (cl-defun org-mpv-notes--create-link (&optional (read-description t))
   "Create a link with timestamp to insert in org file.
 If `READ-DESCRIPTION' is true, ask for a link description from user."
-  (let* ((path (mpv-get-property "path"))
+  (let* ((path (org-link-escape (mpv-get-property "path")))
          (time (mpv-get-playback-position))
 
          (h (floor (/ time 3600)))
