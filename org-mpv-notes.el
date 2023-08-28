@@ -45,7 +45,19 @@ ARG is passed to `org-link-complete-file'."
 
 (org-link-set-parameters "mpv"
                          :complete #'org-mpv-notes-complete-link
-                         :follow #'org-mpv-notes-open)
+                         :follow #'org-mpv-notes-open
+                         :export #'org-mpv-notes-export)
+
+;; adapted from https://bitspook.in/blog/extending-org-mode-to-handle-youtube-links/
+(defun org-mpv-notes-export (path desc backend)
+  (when (and (eq backend 'html)
+             (or (not desc) (string-equal desc ""))
+             (string-search "youtube.com/" path))
+    (let* ((video-id (cadar (url-parse-query-string path)))
+           (url (if (string-empty-p video-id) path
+                  (format "//youtube.com/embed/%s" video-id))))
+      (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"https://www.youtube-nocookie.com/embed/lJIrF4YjHfQ\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
+              url desc))))
 
 (defvar org-mpv-notes-timestamp-regex "[0-9]+:[0-9]+:[0-9]+")
 
