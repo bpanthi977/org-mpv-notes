@@ -51,23 +51,36 @@ ARG is passed to `org-link-complete-file'."
 ;; adapted from https://bitspook.in/blog/extending-org-mode-to-handle-youtube-links/
 (defun org-mpv-notes-export (path desc backend)
   (when (and (eq backend 'html)
-             (or (not desc) (string-equal desc ""))
              (string-search "youtube.com/" path))
-    (let* ((video-id (cadar (url-parse-query-string path)))
-           (url (if (string-empty-p video-id) path
-                  (format "//youtube.com/embed/%s" video-id))))
-      (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"https://www.youtube-nocookie.com/embed/lJIrF4YjHfQ\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
-              url desc))))
+    (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
+      (cond ((or (not desc) (string-equal desc ""))
+             (let* ((video-id (cadar (url-parse-query-string path)))
+                    (url (if (string-empty-p video-id) path
+                           (format "//youtube.com/embed/%s" video-id))))
+               (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"https://www.youtube-nocookie.com/embed/lJIrF4YjHfQ\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
+                       url desc)))
+            (secs
+             (format "<a href=\"%s&t=%ds\">%s</a>" path secs (substring-no-properties desc)))))))
 
 (defvar org-mpv-notes-timestamp-regex "[0-9]+:[0-9]+:[0-9]+")
+
+(defun org-mpv-notes--parse-link (path)
+  (let (search-option
+        (secs nil))
+    (when (string-match "::\\(.*\\)\\'" path)
+      (setq search-option (match-string 1 path))
+      (setq path (replace-match "" nil nil path)))
+    (cond ((null search-option) nil)
+          ((string-match (concat "^" org-mpv-notes-timestamp-regex) search-option)
+           (setf secs (org-timer-hms-to-secs search-option)))
+          ((string-match "^\\([0-9]+\\)$" search-option)
+           (setf secs (string-to-number search-option))))
+    (values path (and secs (> secs 0) secs))))
 
 (defun org-mpv-notes-open (path &optional arg)
   "Open the mpv `PATH'.
 `ARG' is required by org-follow-link but is ignored here."
-  (let (search-option)
-    (when (string-match "::\\(.*\\)\\'" path)
-      (setq search-option (match-string 1 path))
-      (setq path (replace-match "" nil nil path)))
+  (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes t)
     ;; Open mpv player
@@ -78,14 +91,8 @@ ARG is passed to `org-link-complete-file'."
            (sleep-for 0.05)
            (mpv-start path)))
     ;; Jump to link
-    (cond ((null search-option) nil)
-          ((string-match (concat "^" org-mpv-notes-timestamp-regex) search-option)
-           (let ((secs (org-timer-hms-to-secs search-option)))
-             (when (>= secs 0)
-               (mpv-seek secs))))
-          ((string-match "^\\([0-9]+\\)$" search-option)
-           (let ((secs (string-to-number search-option)))
-             (mpv-seek 0))))))
+    (when secs
+      (mpv-seek secs))))
 
 ;;;;;
 ;;; Screenshot
