@@ -241,6 +241,18 @@ the file to proper location and insert a link to that file."
 ;;; Creating Links
 ;;;;;
 
+(defcustom org-mpv-notes-pause-on-link-create nil
+  "Whether to automatically pause mpv when creating a link or note."
+  :type 'boolean
+  :group 'org-mpv-notes)
+
+(defun org-mpv-toggle-pause-on-link-create ()
+  "Toggle whether to automatically pause mpv when creating a link or note."
+  (interactive)
+  (setq org-mpv-notes-pause-on-link-create (not org-mpv-notes-pause-on-link-create))
+  (message "mpv will now %spause when creating an org-mpv link/note"
+    (if org-mpv-notes-pause-on-link-create "" "NOT ")))
+
 (cl-defun org-mpv-notes--create-link (&optional (read-description t))
   "Create a link with timestamp to insert in org file.
 If `READ-DESCRIPTION' is true, ask for a link description from user."
@@ -251,9 +263,13 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
          (m (floor (/ (mod time 3600) 60)))
          (s (floor (mod time 60)))
          (timestamp (format "%02d:%02d:%02d" h m s))
-         (description (if read-description
-                          (read-string "Description: ")
-                        "")))
+         (description ""))
+    (when org-mpv-notes-pause-on-link-create
+      (if mpv-backend
+        (mpv-pause))
+       (empv-pause))
+    (when read-description
+      (setq description (read-string "Description: ")))
     (when (string-equal description "")
       (setf description timestamp))
     (concat "[[mpv:" path "::" timestamp "][" description "]]")))
