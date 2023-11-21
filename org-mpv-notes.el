@@ -6,7 +6,7 @@
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "28.1") (mpv "0.2.0"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
 ;; This file in not part of GNU Emacs
@@ -25,10 +25,56 @@
 
 ;;; Code:
 (require 'cl-lib)
-(require 'mpv)
+(require 'mpv nil 'noerror)
+(require 'empv nil 'noerror)
 (require 'org-attach)
 (require 'org-element)
 (require 'org-timer)
+
+
+;;;;;
+;;; MPV and EMPV Compatibility Layer
+;;;;;
+(defcustom org-mpv-notes-preferred-backend 'empv
+   "The preferred mpv library to open new media with."
+  :type 'symbol
+  :options '(mpv empv))
+
+(defun org-mpv-notes--backend ()
+  "Get the mpv backend to open media with."
+  (if (eql org-mpv-notes-preferred-backend 'mpv)
+      (cl-find 'mpv features)
+    (or (cl-find 'empv features)
+        (cl-find 'mpv features))))
+
+
+(defun org-mpv-notes--cmd (cmd &rest args)
+  "Run a mpv command `CMD' (with `ARGS') synchronously."
+  (or (and (cl-find 'mpv features)
+           (mpv-live-p)
+           (progn (apply #'mpv-run-command cmd args)
+                  t))
+      (and (cl-find 'empv features)
+           (empv--running?)
+           (progn (empv--send-command-sync (list cmd args))
+                  t))
+      (error "Please open a audio/video in either mpv or empv library")))
+
+(defun org-mpv-notes--get-property (property)
+  "Get the value of mpv `PROPERTY' from current player."
+  (or (and (cl-find 'mpv features)
+           (mpv-live-p)
+           (mpv-get-property property))
+      (and (cl-find 'empv features)
+           (empv--running?)
+           (with-timeout (1 nil)
+             (empv--send-command-sync (list "get_property" property))))
+      (error "Please open a audio/video in either mpv or empv library")))
+
+(defun org-mpv-notes--set-property (property value)
+  "Send a command to update mpv `PROPERTY' to `VALUE'."
+  (org-mpv-notes--cmd "set_property" property value))
+
 
 ;;;;;
 ;;; Opening Link & Interface with org link
@@ -51,6 +97,10 @@ ARG is passed to `org-link-complete-file'."
 
 ;; adapted from https://bitspook.in/blog/extending-org-mode-to-handle-youtube-links/
 (defun org-mpv-notes-export (path desc backend)
+  "Format mpv link while exporing.
+For html exports, YouTube links are converted to thumbnails.
+`PATH' and `DESC' are the mpv link and description.
+`BACKEND' is the export backend (html, latex, ...)"
   (when (and (eq backend 'html)
              (string-search "youtube.com/" path))
     (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
@@ -66,6 +116,7 @@ ARG is passed to `org-link-complete-file'."
 (defvar org-mpv-notes-timestamp-regex "[0-9]+:[0-9]+:[0-9]+")
 
 (defun org-mpv-notes--parse-link (path)
+  "Parse the org-link `PATH' to extract the media path and timestamp."
   (let (search-option
         (secs nil))
     (when (string-match "::\\(.*\\)\\'" path)
@@ -81,19 +132,42 @@ ARG is passed to `org-link-complete-file'."
 (defun org-mpv-notes-open (path &optional arg)
   "Open the mpv `PATH'.
 `ARG' is required by org-follow-link but is ignored here."
+  (interactive "fMedia Path:")
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes t)
-    ;; Open mpv player
-    (cond ((not (mpv-live-p))
-           (mpv-start path))
-          ((not (string-equal (mpv-get-property "path") path))
-           (mpv-kill)
-           (sleep-for 0.05)
-           (mpv-start path)))
-    ;; Jump to link
-    (when secs
-      (mpv-seek secs))))
+    (let ((backend (org-mpv-notes--backend)))
+      (cl-flet ((alive? ()
+                  (if (eql backend 'mpv)
+                      (mpv-live-p)
+                    (empv--running?)))
+
+                (start (path)
+                  (if (eql backend 'mpv)
+                      (mpv-start path)
+                    (empv-start path)))
+
+                (kill ()
+                  (if (eql backend 'mpv)
+                      (mpv-kill)
+                    (empv-exit)))
+
+                (seek (secs)
+                  (if (eql backend 'mpv)
+                      (mpv-seek secs)
+                    (empv-seek secs '("absolute")))))
+
+        ;; Open mpv player
+        (cond ((not (alive?))
+               (start path))
+              ((not (string-equal (org-mpv-notes--get-property "path") path))
+               (kill)
+               (sleep-for 0.05)
+               (start path)))
+        ;; Jump to link
+        (when secs
+          (sleep-for 0.05)
+          (seek secs))))))
 
 ;;;;;
 ;;; Screenshot
@@ -123,9 +197,9 @@ the file to proper location and insert a link to that file."
   (interactive)
   (let ((filename (format "%s.png" (make-temp-file "mpv-screenshot"))))
     ;; take screenshot
-    (mpv-run-command "screenshot-to-file"
-                     filename
-                     "video")
+    (org-mpv-notes--cmd "screenshot-to-file"
+                        filename
+                        "video")
     (funcall org-mpv-notes-save-image-function filename)
     (org-display-inline-images)))
 
@@ -158,9 +232,9 @@ the file to proper location and insert a link to that file."
   (interactive)
   (let ((filename (format "%s.png" (make-temp-file "mpv-screenshot"))))
     ;; take screenshot
-    (mpv-run-command "screenshot-to-file"
-                     filename
-                     "video")
+    (org-mpv-notes--cmd "screenshot-to-file"
+                        filename
+                        "video")
     (let ((string (org-mpv-notes--ocr-on-file filename)))
       (insert "\n"
               string
@@ -183,7 +257,8 @@ This affects functions `org-mpv-notes-next-timestamp' and
  (string-match "mpv" (or (org-element-property :type (org-element-context)) "")))
 
 (defun org-mpv-notes-next-timestamp (&optional reverse)
-  "Seek to next timestamp in the notes file."
+  "Seek to next timestamp in the notes file.
+`REVERSE' searches in backwards direction."
   (interactive)
   (let ((p (point))
         success)
@@ -244,8 +319,8 @@ to create a note or link."
 (cl-defun org-mpv-notes--create-link (&optional (read-description t))
   "Create a link with timestamp to insert in org file.
 If `READ-DESCRIPTION' is true, ask for a link description from user."
-  (let* ((path (org-link-escape (mpv-get-property "path")))
-         (time (max 0 (- (mpv-get-playback-position)
+  (let* ((path (org-link-escape (org-mpv-notes--get-property "path")))
+         (time (max 0 (- (org-mpv-notes--get-property "playback-time")
                          org-mpv-notes-timestamp-lag)))
          (h (floor (/ time 3600)))
          (m (floor (/ (mod time 3600) 60)))
