@@ -244,9 +244,21 @@ the file to proper location and insert a link to that file."
 (cl-defun org-mpv-notes--create-link (&optional (read-description t))
   "Create a link with timestamp to insert in org file.
 If `READ-DESCRIPTION' is true, ask for a link description from user."
-  (let* ((path (org-link-escape (mpv-get-property "path")))
-         (time (mpv-get-playback-position))
-
+  (let* ((mpv-backend (or (and (cl-find 'mpv features) (mpv-live-p))
+                          (if (cl-find 'empv features)
+                             nil
+                            (error "Please load either mpv or empv library"))))
+         (path (org-link-escape
+                 (or (if mpv-backend
+                       (mpv-get-property "path")
+                      (with-timeout (1 nil)
+                        (empv--send-command-sync (list "get_property" 'path))))
+                     (error "Error: mpv path not found"))))
+         (time (or (if mpv-backend
+                     (mpv-get-playback-position)
+                    (with-timeout (1 nil)
+                      (empv--send-command-sync (list "get_property" 'time-pos))))
+                   (error "Error: mpv time-pos not found")))
          (h (floor (/ time 3600)))
          (m (floor (/ (mod time 3600) 60)))
          (s (floor (mod time 60)))
