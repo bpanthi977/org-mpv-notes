@@ -29,6 +29,36 @@
 (require 'org-attach)
 (require 'org-element)
 
+
+;;;;;
+;;; MPV and EMPV Compatibility Layer
+;;;;;
+
+(defun org-mpv-notes--cmd (cmd &rest args)
+  (or (and (cl-find 'mpv features)
+           (mpv-live-p)
+           (progn (apply #'mpv-run-command cmd args)
+                  t))
+      (and (cl-find 'empv features)
+           (empv--running?)
+           (progn (empv--cmd cmd args)
+                  t))
+      (error "Please open a audio/video in either mpv or empv library")))
+
+(defun org-mpv-notes--get-property (property)
+  (or (and (cl-find 'mpv features)
+           (mpv-live-p)
+           (mpv-get-property property))
+      (and (cl-find 'empv features)
+           (empv--running?)
+           (with-timeout (1 nil)
+             (empv--send-command-sync (list "get_property" property))))
+      (error "Please open a audio/video in either mpv or empv library")))
+
+(defun org-mpv-notes--set-property (property value)
+  (org-mpv-notes--cmd "set_property" property value))
+
+
 ;;;;;
 ;;; Opening Link & Interface with org link
 ;;;;;
@@ -80,19 +110,42 @@ ARG is passed to `org-link-complete-file'."
 (defun org-mpv-notes-open (path &optional arg)
   "Open the mpv `PATH'.
 `ARG' is required by org-follow-link but is ignored here."
+  ;; TODO: Support for empv.el
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes t)
-    ;; Open mpv player
-    (cond ((not (mpv-live-p))
-           (mpv-start path))
-          ((not (string-equal (mpv-get-property "path") path))
-           (mpv-kill)
-           (sleep-for 0.05)
-           (mpv-start path)))
-    ;; Jump to link
-    (when secs
-      (mpv-seek secs))))
+    (let ((backend (or (find 'mpv features)
+                       (find 'empv features))))
+      (flet ((alive? ()
+                     (if (eql backend 'mpv)
+                         (mpv-live-p)
+                       (empv--running?)))
+
+             (start (path)
+                    (if (eql backend 'mpv)
+                        (mpv-start path)
+                      (empv-start path)))
+
+             (kill ()
+                   (if (eql backend 'mpv)
+                       (mpv-kill)
+                     (empv-exit)))
+
+             (seek (secs)
+                   (if (eql backend 'mpv)
+                       (mpv-seek secs)
+                     (empv-seek secs 'absolute))))
+
+        ;; Open mpv player
+        (cond ((not (alive?))
+               (start path))
+              ((not (string-equal (org-mpv-notes--get-property "path") path))
+               (kill)
+               (sleep-for 0.05)
+               (start path)))
+        ;; Jump to link
+        (when secs
+          (seek secs))))))
 
 ;;;;;
 ;;; Screenshot
@@ -122,9 +175,9 @@ the file to proper location and insert a link to that file."
   (interactive)
   (let ((filename (format "%s.png" (make-temp-file "mpv-screenshot"))))
     ;; take screenshot
-    (mpv-run-command "screenshot-to-file"
-                     filename
-                     "video")
+    (org-mpv-notes--cmd "screenshot-to-file"
+                        filename
+                        "video")
     (funcall org-mpv-notes-save-image-function filename)
     (org-display-inline-images)))
 
@@ -157,9 +210,9 @@ the file to proper location and insert a link to that file."
   (interactive)
   (let ((filename (format "%s.png" (make-temp-file "mpv-screenshot"))))
     ;; take screenshot
-    (mpv-run-command "screenshot-to-file"
-                     filename
-                     "video")
+    (org-mpv-notes--cmd "screenshot-to-file"
+                        filename
+                        "video")
     (let ((string (org-mpv-notes--ocr-on-file filename)))
       (insert "\n"
               string
@@ -223,19 +276,19 @@ the file to proper location and insert a link to that file."
 (defun org-mpv-speed-up ()
   "Increase playback speed by 1.1 factor."
   (interactive)
-  (mpv-set-property "speed" (* 1.1 (mpv-get-property "speed"))))
+  (org-mpv-notes--set-property "speed" (* 1.1 (mpv-get-property "speed"))))
 
 (defun org-mpv-speed-down ()
   "Decrease playback speed by 1.1 factor."
   (interactive)
-  (mpv-set-property "speed" (/ (mpv-get-property "speed") 1.1)))
+  (org-mpv-notes--set-property "speed" (/ (mpv-get-property "speed") 1.1)))
 
 (defun org-mpv-notes-toggle-fullscreen ()
   "Ask mpv to toggle fullscreen."
   (interactive)
   ;; https://github.com/mpv-player/mpv/blob/master/DOCS/man/inpute.rst
   ;; https://github.com/mpv-player/mpv/blob/master/etc/input.conf
-  (mpv--enqueue '("cycle" "fullscreen") #'ignore))
+  (org-mpv-notes--cmd "cycle" "fullscreen"))
 
 ;;;;;
 ;;; Creating Links
