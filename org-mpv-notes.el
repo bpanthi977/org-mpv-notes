@@ -114,9 +114,9 @@ ARG is passed to `org-link-complete-file'."
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes t)
-    (let ((backend (or (find 'mpv features)
-                       (find 'empv features))))
-      (flet ((alive? ()
+    (let ((backend (or (cl-find 'mpv features)
+                       (cl-find 'empv features))))
+      (cl-flet ((alive? ()
                      (if (eql backend 'mpv)
                          (mpv-live-p)
                        (empv--running?)))
