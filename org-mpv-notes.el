@@ -6,7 +6,7 @@
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "27.1") (mpv "0.2.0"))
+;; Package-Requires: ((emacs "27.1"))
 ;; Kewords: mpv, org
 
 ;; This file in not part of GNU Emacs
