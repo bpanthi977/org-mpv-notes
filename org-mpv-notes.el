@@ -170,6 +170,13 @@ the file to proper location and insert a link to that file."
 
 (defvar org-mpv-notes-link-regex "\\[\\[mpv:\\([^\\n\\]*?\\)\\]\\[\\([^\\n]*?\\)\\]\\]")
 
+(defcustom org-mpv-narrow-timestamp-navigation nil
+  "Restrict timestamp navigation to within the current heading.
+This affects functions `org-mpv-notes-next-timestamp' and
+`org-mpv-notes-previous-timestamp'."
+  :type 'boolean
+  :group 'org-mpv-notes)
+
 (defun org-mpv-notes-timestamp-p ()
   "Return non-NIL if POINT is on a timestamp."
  (string-match "mpv" (or (org-element-property :type (org-element-context)) "")))
@@ -177,12 +184,23 @@ the file to proper location and insert a link to that file."
 (defun org-mpv-notes-next-timestamp (&optional reverse)
   "Seek to next timestamp in the notes file."
   (interactive)
-  (let (success)
-    (while (and (not success) (org-next-link reverse))
-      (when (org-mpv-notes-timestamp-p)
-        (setq success t)))
+  (let ((p (point))
+        success)
+    (save-excursion
+      (when org-mpv-narrow-timestamp-navigation
+        (org-narrow-to-subtree))
+      (while (and (not success)
+                  (org-next-link reverse)
+                  (not (eq p (point))))
+        (when (and (org-mpv-notes-timestamp-p)
+                   (not (eq p (point))))
+          (setq success t))
+        (setq p (point)))
+     (when org-mpv-narrow-timestamp-navigation
+       (widen)))
     (if (not success)
       (error "Error: No %s link" (if reverse "prior" "next"))
+     (goto-char p)
      (org-open-at-point)
      (org-show-entry)
      (recenter))))
