@@ -25,7 +25,8 @@
 
 ;;; Code:
 (require 'cl-lib)
-(require 'mpv)
+(require 'mpv nil 'noerror)
+(require 'empv nil 'noerror)
 (require 'org-attach)
 (require 'org-element)
 
