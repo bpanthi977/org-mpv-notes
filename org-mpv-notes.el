@@ -243,8 +243,6 @@ the file to proper location and insert a link to that file."
 ;;; Motion (jump to next, previous, ... link)
 ;;;;;
 
-(defvar org-mpv-notes-link-regex "\\[\\[mpv:\\([^\\n\\]*?\\)\\]\\[\\([^\\n]*?\\)\\]\\]")
-
 (defcustom org-mpv-notes-narrow-timestamp-navigation nil
   "Restrict timestamp navigation to within the current heading.
 This affects functions `org-mpv-notes-next-timestamp' and
