@@ -137,7 +137,9 @@ ARG is passed to `org-link-complete-file'."
 
         ;; Open mpv player
         (cond ((not (alive?))
-               (start path))
+               (start path)
+               (sleep-for 0.05)
+               (seek path))
               ((not (string-equal (org-mpv-notes--get-property "path") path))
                (kill)
                (sleep-for 0.05)
