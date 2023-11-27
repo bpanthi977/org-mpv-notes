@@ -189,20 +189,17 @@ the file to proper location and insert a link to that file."
   (org-mpv-notes-next-timestamp t))
 
 (defun org-mpv-notes-this-timestamp ()
-  "Seeks to the timestamp at point or stored in the property drawer of the heading."
+  "Seek to the timestamp at POINT or previous.
+If there is no timestamp at POINT, consider the previous one as
+'this' one."
   (interactive)
-  (let* ((element (org-element-context))
-         (path (and element
-                    (eql (org-element-type element) 'link)
-                    (org-element-property :path element))))
-    (unless path
-      (let ((raw-link (org-entry-get (point) "mpv_link" t)))
-        (when (and raw-link (string-match org-mpv-notes-link-regex raw-link))
-          (setf path (match-string 1 raw-link)))))
-
-    (org-mpv-notes-open path)
-    (org-show-entry)
-    (recenter)))
+  (cond
+   ((string-match "mpv" (or (org-element-property :type (org-element-context)) ""))
+     (org-mpv-notes-open path)
+     (org-show-entry)
+     (recenter))
+   (t
+     (save-excursion (org-mpv-notes-previous-timestamp)))))
 
 ;;;;;
 ;;; MPV Controls
