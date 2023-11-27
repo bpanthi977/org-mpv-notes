@@ -110,7 +110,6 @@ ARG is passed to `org-link-complete-file'."
 (defun org-mpv-notes-open (path &optional arg)
   "Open the mpv `PATH'.
 `ARG' is required by org-follow-link but is ignored here."
-  ;; TODO: Support for empv.el
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes t)
