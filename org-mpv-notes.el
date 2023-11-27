@@ -170,12 +170,16 @@ the file to proper location and insert a link to that file."
 
 (defvar org-mpv-notes-link-regex "\\[\\[mpv:\\([^\\n\\]*?\\)\\]\\[\\([^\\n]*?\\)\\]\\]")
 
+(defun org-mpv-notes-timestamp-p ()
+  "Return non-NIL if POINT is on a timestamp."
+ (string-match "mpv" (or (org-element-property :type (org-element-context)) "")))
+
 (defun org-mpv-notes-next-timestamp (&optional reverse)
   "Seek to next timestamp in the notes file."
   (interactive)
   (let (success)
     (while (and (not success) (org-next-link reverse))
-      (when (string-match "mpv" (or (org-element-property :type (org-element-context)) ""))
+      (when (org-mpv-notes-timestamp-p)
         (setq success t)))
     (if (not success)
       (error "Error: No %s link" (if reverse "prior" "next"))
@@ -194,7 +198,7 @@ If there is no timestamp at POINT, consider the previous one as
 'this' one."
   (interactive)
   (cond
-   ((string-match "mpv" (or (org-element-property :type (org-element-context)) ""))
+   ((org-mpv-notes-timestamp-p)
      (org-mpv-notes-open path)
      (org-show-entry)
      (recenter))
