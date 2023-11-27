@@ -205,39 +205,6 @@ the file to proper location and insert a link to that file."
     (recenter)))
 
 ;;;;;
-;;; MPV Controls
-;;;;;
-
-(defun org-mpv-notes-seek-double-step ()
-  "Increase seek step size."
-  (interactive)
-  (setf mpv-seek-step (* 2 mpv-seek-step))
-  (message "%f" mpv-seek-step))
-
-(defun org-mpv-notes-seek-halve-step ()
-  "Decrease seek step size."
-  (interactive)
-  (setf mpv-seek-step (/ mpv-seek-step 2.0))
-  (message "%f" mpv-seek-step))
-
-(defun org-mpv-speed-up ()
-  "Increase playback speed by 1.1 factor."
-  (interactive)
-  (mpv-set-property "speed" (* 1.1 (mpv-get-property "speed"))))
-
-(defun org-mpv-speed-down ()
-  "Decrease playback speed by 1.1 factor."
-  (interactive)
-  (mpv-set-property "speed" (/ (mpv-get-property "speed") 1.1)))
-
-(defun org-mpv-notes-toggle-fullscreen ()
-  "Ask mpv to toggle fullscreen."
-  (interactive)
-  ;; https://github.com/mpv-player/mpv/blob/master/DOCS/man/inpute.rst
-  ;; https://github.com/mpv-player/mpv/blob/master/etc/input.conf
-  (mpv--enqueue '("cycle" "fullscreen") #'ignore))
-
-;;;;;
 ;;; Creating Links
 ;;;;;
 
