@@ -217,7 +217,7 @@ If there is no timestamp at POINT, consider the previous one as
   (interactive)
   (cond
    ((org-mpv-notes-timestamp-p)
-     (org-mpv-notes-open path)
+     (org-mpv-notes-open (org-element-property :path (org-element-context)))
      (org-show-entry)
      (recenter))
    (t
