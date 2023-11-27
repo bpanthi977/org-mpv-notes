@@ -124,29 +124,27 @@ ARG is passed to `org-link-complete-file'."
              (start (path)
                     (if (eql backend 'mpv)
                         (mpv-start path)
-                      (empv-start path)))
-
+                      (if path (empv-play path)
+                        (call-interactively 'empv-play-file))))
              (kill ()
                    (if (eql backend 'mpv)
                        (mpv-kill)
                      (empv-exit)))
-
              (seek (secs)
                    (if (eql backend 'mpv)
                        (mpv-seek secs)
-                     (empv-seek secs 'absolute))))
+                     (empv--cmd 'seek secs "absolute+"))))
 
         ;; Open mpv player
         (cond ((not (alive?))
-               (start path)
-               (sleep-for 0.05)
-               (seek path))
+               (start path))
               ((not (string-equal (org-mpv-notes--get-property "path") path))
                (kill)
                (sleep-for 0.05)
                (start path)))
         ;; Jump to link
         (when secs
+          (sleep-for 0.05)
           (seek secs))))))
 
 ;;;;;
@@ -303,17 +301,26 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
                           (if (cl-find 'empv features)
                              nil
                             (error "Please load either mpv or empv library"))))
-         (path (org-link-escape
+         (alive (if (eql mpv-backend 'mpv)
+                   (mpv-live-p)
+                  (empv--running?)))
+         (path (progn
+                 (when (not alive)
+                   (call-interactively 'org-mpv-notes-open))
+                 (org-link-escape
+                   (or (if mpv-backend
+                         (mpv-get-property "path")
+                        (with-timeout (1 nil)
+                          (empv--send-command-sync (list "get_property" 'path))))
+                       (org-mpv-notes-open "")))))
+
+         (time (if alive
                  (or (if mpv-backend
-                       (mpv-get-property "path")
+                       (mpv-get-playback-position)
                       (with-timeout (1 nil)
-                        (empv--send-command-sync (list "get_property" 'path))))
-                     (error "Error: mpv path not found"))))
-         (time (or (if mpv-backend
-                     (mpv-get-playback-position)
-                    (with-timeout (1 nil)
-                      (empv--send-command-sync (list "get_property" 'time-pos))))
-                   (error "Error: mpv time-pos not found")))
+                        (empv--send-command-sync (list "get_property" 'time-pos))))
+                      (error "Error: mpv time-pos not found"))
+                0))
          (h (floor (/ time 3600)))
          (m (floor (/ (mod time 3600) 60)))
          (s (floor (mod time 60)))
