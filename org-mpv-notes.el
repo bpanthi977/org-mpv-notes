@@ -314,9 +314,7 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
   (let ((link  (org-mpv-notes--create-link nil)))
     (when link
       (org-insert-heading)
-      (save-excursion
-        (org-insert-property-drawer)
-        (org-set-property "mpv_link" link)))))
+      (insert link))))
 
 (defun org-mpv-notes-insert-link ()
   "Insert link with timestamp."
