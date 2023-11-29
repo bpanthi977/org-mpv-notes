@@ -302,7 +302,7 @@ This affects functions `org-mpv-notes-next-timestamp' and
 `org-mpv-notes-previous-timestamp'."
   :type 'boolean)
 
-(defun org-mpv-notes-timestamp-p ()
+(defun org-mpv-notes--timestamp-p ()
   "Return non-NIL if POINT is on a timestamp."
  (string-match "mpv" (or (org-element-property :type (org-element-context)) "")))
 
@@ -318,7 +318,7 @@ This affects functions `org-mpv-notes-next-timestamp' and
       (while (and (not success)
                   (org-next-link reverse)
                   (not (eq p (point))))
-        (when (and (org-mpv-notes-timestamp-p)
+        (when (and (org-mpv-notes--timestamp-p)
                    (not (eq p (point))))
           (setq success t))
         (setq p (point)))
@@ -342,7 +342,7 @@ If there is no timestamp at POINT, consider the previous one as
 'this' one."
   (interactive)
   (cond
-   ((org-mpv-notes-timestamp-p)
+   ((org-mpv-notes--timestamp-p)
      (org-mpv-notes-open (org-element-property :path (org-element-context)))
      (org-show-entry)
      (recenter))
@@ -419,7 +419,7 @@ Region is between `BEGIN' and `END' points,
 With a PREFIX-ARG (`ALL-OCCURENCES'), apply the change to all similar references
 within the current buffer."
   (interactive "P")
-  (unless (org-mpv-notes-timestamp-p)
+  (unless (org-mpv-notes--timestamp-p)
     ;; We could always look to the timestamp link prior to POINT, but
     ;; this is a decent trade-off between convenience and preventing
     ;; accidental changes.
@@ -449,7 +449,7 @@ within the current buffer."
       (setq here (point))
       (while (and (org-next-link)
                   (> (point) here))
-        (when (org-mpv-notes-timestamp-p)
+        (when (org-mpv-notes--timestamp-p)
           (funcall replace-it))
         (setq here (point)))
       (goto-char p))
