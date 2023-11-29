@@ -55,12 +55,15 @@ directly.
 
 The org-mpv-notes =minor-mode= binds the followings keys:
 
-| M-n i   | =org-mpv-notes-insert-link=     |
-| M-n M-i | =org-mpv-notes-insert-note=     |
-| M-n s   | =org-mpv-notes-save-screenshot= |
-| M-n M-s | =org-mpv-notes-screenshot-ocr=  |
-| M-n SPC | =org-mpv-notes-pause=           |
-| M-n k   | =org-mpv-notes-kill=            |
+| M-n i       | =org-mpv-notes-insert-link=        |
+| M-n M-i     | =org-mpv-notes-insert-note=        |
+| M-n =       | =org-mpv-notes-this-timestamp=     |
+| M-n <left>  | =org-mpv-notes-previous-timestamp= |
+| M-n <right> | =org-mpv-notes-next-timestamp=     |
+| M-n s       | =org-mpv-notes-save-screenshot=    |
+| M-n M-s     | =org-mpv-notes-screenshot-ocr=     |
+| M-n SPC     | =org-mpv-notes-pause=              |
+| M-n k       | =org-mpv-notes-kill=               |
 
 *** Dealing with a changed path or file name
 

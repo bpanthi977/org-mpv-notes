@@ -465,12 +465,15 @@ within the current buffer."
 (define-minor-mode org-mpv-notes
   "Org minor mode for Note taking alongside audio and video.
 Uses mpv.el to control mpv process"
-  :keymap `((,(kbd "M-n i")   . org-mpv-notes-insert-link)
-            (,(kbd "M-n M-i") . org-mpv-notes-insert-note)
-            (,(kbd "M-n s")   . org-mpv-notes-save-screenshot)
-            (,(kbd "M-n M-s") . org-mpv-notes-screenshot-ocr)
-            (,(kbd "M-n SPC") . org-mpv-notes-pause)
-            (,(kbd "M-n k")   . org-mpv-notes-kill)))
+  :keymap `((,(kbd "M-n i")       . org-mpv-notes-insert-link)
+            (,(kbd "M-n M-i")     . org-mpv-notes-insert-note)
+            (,(kbd "M-n =")       . org-mpv-notes-this-timestamp)
+            (,(kbd "M-n <left>")  . org-mpv-notes-previous-timestamp)
+            (,(kbd "M-n <right>") . org-mpv-notes-next-timestamp)
+            (,(kbd "M-n s")       . org-mpv-notes-save-screenshot)
+            (,(kbd "M-n M-s")     . org-mpv-notes-screenshot-ocr)
+            (,(kbd "M-n SPC")     . org-mpv-notes-pause)
+            (,(kbd "M-n k")       . org-mpv-notes-kill)))
 
 (provide 'org-mpv-notes)
 
