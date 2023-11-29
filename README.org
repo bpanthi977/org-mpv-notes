@@ -50,3 +50,12 @@ From that point on, you can add heading and timestamps as you wish.
 Same for the screenshot and OCR support. At any point, you can
 control =mpv= either from within Emacs (using =mpv.el= or =empv.el=) or
 directly.
+
+*** Dealing with a changed path or file name
+
+If a media file to which you had linked has since been renamed or
+moved, place POINT on one of the now-broken links and run command M-x
+=org-mpv-notes-change-link-reference=. It will ask you for the new
+pathspec and make the change for that link only. In order to perform
+the change on all occurrences in the org-mode file, run the command
+C-u M-x =org-mpv-notes-change-link-reference=.

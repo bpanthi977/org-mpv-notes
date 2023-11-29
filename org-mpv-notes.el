@@ -388,6 +388,48 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
         (delete-region (match-beginning 0) (match-end 0))
         (insert "[[" link "::" timestamp "][" timestamp "]]")))))
 
+(defun org-mpv-notes-change-link-reference (all-occurences)
+  "Change a link to reflect a moved or renamed media file.
+With a PREFIX-ARG (`ALL-OCCURENCES'), apply the change to all similar references
+within the current buffer."
+  (interactive "P")
+  (unless (org-mpv-notes-timestamp-p)
+    ;; We could always look to the timestamp link prior to POINT, but
+    ;; this is a decent trade-off between convenience and preventing
+    ;; accidental changes.
+    (error "Error: POINT is not within a timestamp link"))
+  (let* ((target (org-link-escape
+                   (read-file-name "Correct target path?: " nil nil t)))
+         (context (org-element-context))
+         (old-link-path (split-string
+                          (or (org-element-property :path context)
+                              (error "Error: Failed to extract old path-name"))
+                          "::"))
+         (old-path (if (/= 2 (length old-link-path))
+                     (error "Error: Failed to parse the old link")
+                    (org-link-escape (car old-link-path))))
+         (p (point))
+         here
+         (replace-it
+           (lambda ()
+             (setq context (org-element-context))
+             (replace-string-in-region old-path target
+                                       (org-element-property :begin context)
+                                       (org-element-property :end context)))))
+    (org-toggle-link-display)
+    (cond
+     (all-occurences
+      (goto-char (point-min))
+      (setq here (point))
+      (while (and (org-next-link)
+                  (> (point) here))
+        (when (org-mpv-notes-timestamp-p)
+          (funcall replace-it))
+        (setq here (point)))
+      (goto-char p))
+     (t ; ie. (not all-occurences)
+       (funcall replace-it)))
+     (org-toggle-link-display)))
 
 ;;;;;
 ;;; Minor Mode and Keymap
