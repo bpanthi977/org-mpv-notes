@@ -51,6 +51,17 @@ Same for the screenshot and OCR support. At any point, you can
 control =mpv= either from within Emacs (using =mpv.el= or =empv.el=) or
 directly.
 
+**** Default keybindings
+
+The org-mpv-notes =minor-mode= binds the followings keys:
+
+| M-n i   | =org-mpv-notes-insert-link=     |
+| M-n M-i | =org-mpv-notes-insert-note=     |
+| M-n s   | =org-mpv-notes-save-screenshot= |
+| M-n M-s | =org-mpv-notes-screenshot-ocr=  |
+| M-n SPC | =org-mpv-notes-pause=           |
+| M-n k   | =org-mpv-notes-kill=            |
+
 *** Dealing with a changed path or file name
 
 If a media file to which you had linked has since been renamed or
