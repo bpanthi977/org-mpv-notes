@@ -376,17 +376,20 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
   (interactive)
   (insert (org-mpv-notes--create-link t)))
 
-(defun org-mpv-notes-replace-timestamp-with-link (link)
-  "Convert from old format (timestamp only) to new format (link with timestamp).
-`LINK' is the video url/path."
-  (interactive "sLink:")
+(defun org-mpv-notes-replace-timestamp-with-link (begin end link)
+  "Convert hh:mm:ss text within region to link with timestamp.
+Region is between `BEGIN' and `END' points,
+`LINK' is the new media url/path."
+  (interactive "r\nsLink:")
   (save-excursion
-    (while (re-search-forward org-mpv-notes-timestamp-regex nil t)
-      (skip-chars-backward ":[:digit:]" (point-at-bol))
-      (looking-at org-mpv-notes-timestamp-regex)
-      (let ((timestamp (match-string 0)))
-        (delete-region (match-beginning 0) (match-end 0))
-        (insert "[[" link "::" timestamp "][" timestamp "]]")))))
+    (let (timestamp)
+      (setq link (org-link-escape link))
+      (goto-char end)
+      (while (re-search-backward "[^0-9]\\([0-9]+:[0-9]+:[0-9]+\\)" begin t)
+        (setq timestamp (match-string 1))
+        (replace-region-contents (match-beginning 1) (match-end 1)
+                                 (lambda () (concat "[[mpv:" link "::" timestamp "][" timestamp "]]")))
+        (search-backward "[[" begin t)))))
 
 (defun org-mpv-notes-change-link-reference (all-occurences)
   "Change a link to reflect a moved or renamed media file.

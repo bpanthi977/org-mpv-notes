@@ -59,3 +59,11 @@ moved, place POINT on one of the now-broken links and run command M-x
 pathspec and make the change for that link only. In order to perform
 the change on all occurrences in the org-mode file, run the command
 C-u M-x =org-mpv-notes-change-link-reference=.
+
+*** Dealing with manual timestamps
+
+If you have text representations of timestamps in the form hh:mm:ss,
+and want to convert them to links that can be used by this package,
+select the region spanning the timestamps and run command M-x
+=org-mpv-notes-replace-timestamp-with-link=. It will prompt you for a
+text string representing the link URI.
