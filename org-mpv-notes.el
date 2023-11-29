@@ -53,6 +53,23 @@
   :type 'float
   :group 'org-mpv-notes)
 
+(defcustom org-mpv-notes-mpv-args '("--no-terminal"
+                                    "--idle"
+                                    "--no-focus-on-open"
+                                    "--volume=40"
+                                    "--sub-delay=-1"
+                                    "--ontop=yes"
+                                    "--geometry=100%:100%"
+                                    "--autofit=35%"
+                                    "--autofit-larger=50%")
+  "Args used while starting mpv.
+This will over-ride the settings of your chosen mpv
+backend (variable `mpv-default-options' for mpv.el, or variable
+`empv-mpv-args' for empv.el) for just this use-case. See man(1)
+mpv for details."
+  :type 'list
+  :group 'org-mpv-notes)
+
 (defun org-mpv-notes--cmd (cmd &rest args)
   "Run a mpv command `CMD' (with `ARGS') synchronously."
   (or (and (cl-find 'mpv features)
@@ -141,7 +158,10 @@ For html exports, YouTube links are converted to thumbnails.
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes t)
-    (let ((backend (org-mpv-notes--backend)))
+    (let ((backend (org-mpv-notes--backend))
+          (mpv-default-option (format " %s" org-mpv-notes-mpv-args))
+          (empv-mpv-args (when (boundp 'empv-mpv-args)
+                           (append empv-mpv-args org-mpv-notes-mpv-args))))
       (cl-flet ((alive? ()
                   (if (eql backend 'mpv)
                       (mpv-live-p)
