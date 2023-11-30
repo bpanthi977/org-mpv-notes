@@ -61,7 +61,12 @@
   "How many seconds to wait for mpv to settle.
 This may be necessary because much of the empv library runs
 asynchronously."
-  :type 'float)
+  :type '(float
+          :validate
+          (lambda (w)
+            (when (> 0 (floor (widget-value w)))
+              (widget-put w :error "Must be a positive number")
+              w))))
 
 (defcustom org-mpv-notes-mpv-args '("--no-terminal"
                                     "--idle"
@@ -77,7 +82,15 @@ This will over-ride the settings of your chosen mpv
 backend (variable `mpv-default-options' for mpv.el, or variable
 `empv-mpv-args' for empv.el) for just this use-case. See man(1)
 mpv for details."
-  :type 'list)
+  :type '(repeat
+          (string
+           :validate
+           (lambda (w)
+             (let ((val (widget-value w)))
+               (when (or (not (stringp val))
+                         (not (string-match "^--" val)))
+                 (widget-put w :error "All elements must be command line option strings, eg. --foo")
+                 w))))))
 
 
 (defun org-mpv-notes-pause ()
@@ -362,8 +375,12 @@ If there is no timestamp at POINT, consider the previous one as
 
 This variable acknowledges that many of us may sometimes be slow
 to create a note or link."
-  :type 'integer
-  :group 'org-mpv-notes)
+  :type '(integer
+          :validate (lambda (w)
+                      (let ((val (widget-value w)))
+                        (when (> 0 val)
+                          (widget-put w :error "Must be a positive integer")
+                          w)))))
 
 (cl-defun org-mpv-notes--create-link (&optional (read-description t))
   "Create a link with timestamp to insert in org file.
