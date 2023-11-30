@@ -189,7 +189,7 @@ For html exports, YouTube links are converted to thumbnails.
   (interactive "fMedia Path:")
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
-    (org-mpv-notes t)
+    (org-mpv-notes-mode t)
     (let ((backend (org-mpv-notes--backend))
           (mpv-default-option (format " %s" org-mpv-notes-mpv-args))
           (empv-mpv-args (when (boundp 'empv-mpv-args)
@@ -462,7 +462,7 @@ within the current buffer."
 ;;;;;
 
 ;;;###autoload
-(define-minor-mode org-mpv-notes
+(define-minor-mode org-mpv-notes-mode
   "Org minor mode for Note taking alongside audio and video.
 Uses mpv.el to control mpv process"
   :keymap `((,(kbd "M-n i")       . org-mpv-notes-insert-link)
