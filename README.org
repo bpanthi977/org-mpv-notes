@@ -2,17 +2,18 @@
 Take notes in [[https://orgmode.org/][org-mode]] from media files playing in [[https://mpv.io/][mpv]].
 
 From within org-mode, use this package to open a media file in =mpv=,
-and then create links to timestamps within the file. Optionally, you
-can have =mpv= pause automatically when creating a timestamp link,
-allowing you to concentrate on your writing. You can also customize
-the appearance of a timestamp link, and whether the timestamp should
-reflect the instant you type the command or 'n' seconds prior. The
-package allows you to take screenshots of the running media, which can
-be viewed as in-line images when running Emacs as a GUI program. You
-can configure the package to pipe a screenshot to an external OCR
-program and auto-magically insert the ocr-ed text to the org buffer.
-Once a timestamp is created, you can use it to open the media file and
-jump ("seek") directly to that point in the file.
+and then create links to timestamps within that media file.
+Optionally, you can have =mpv= pause automatically when creating a
+timestamp link, allowing you to concentrate on your writing. You can
+also customize the appearance of a timestamp link, and whether the
+timestamp should reflect the instant you type the command or /n/
+seconds prior. The package allows you to take screenshots of the
+running media, which can be viewed as in-line images when running
+Emacs as a GUI program. You can configure the package to pipe a
+screenshot to an external OCR program and auto-magically insert the
+OCR-ed text to the org buffer. Once a timestamp is created, you can
+use it to open the media file and jump ("seek") directly to that point
+in the file.
 
 *** Dependencies
 
@@ -46,7 +47,7 @@ the two is that the former will create an org-mode heading and an
 org-mode timestamp link to the beginning of the media file that you
 choose, and the latter will just create the link.
 
-From that point on, you can add heading and timestamps as you wish.
+From that point on, you can add headings and timestamps as you wish.
 Same for the screenshot and OCR support. At any point, you can
 control =mpv= either from within Emacs (using =mpv.el= or =empv.el=) or
 directly.
@@ -65,19 +66,39 @@ The org-mpv-notes =minor-mode= binds the followings keys:
 | M-n SPC     | =org-mpv-notes-pause=              |
 | M-n k       | =org-mpv-notes-kill=               |
 
-*** Dealing with a changed path or file name
+*** Dealing with subtitles
 
-If a media file to which you had linked has since been renamed or
-moved, place POINT on one of the now-broken links and run command M-x
-=org-mpv-notes-change-link-reference=. It will ask you for the new
-pathspec and make the change for that link only. In order to perform
-the change on all occurrences in the org-mode file, run the command
-C-u M-x =org-mpv-notes-change-link-reference=.
+If you expect that a significant part of your note-taking is going to
+amount to transcribing audio, then you can use command ~M-x~
+=org-mpv-notes-subtitles-insert= to insert a formatted version of a
+local subtitle file into the current buffer. The command will also
+give you the option to link all the inserted subtitle timestamps to a
+local media file. Currently supported subtitle formats are ~srv1~, ~srv2~,
+~srv3~, ~ttml~, and ~vtt~. I'm not aware of =mpv= being able to download
+subtitle files, but programs with that feature (eg. [[https://github.com/ytdl-org/youtube-dl][youtube-dl]],
+[[https://github.com/yt-dlp/yt-dlp][yt-dlp]], [[https://github.com/Diaoul/subliminal][subliminal]]) are probably available in your distribution's
+repositories and, of course, you can try manually downloading them.
+
+#+begin_quote
+Subtitle files are timestamped at each and every line of screen text.
+This creates too many text interruptions for note-taking, so what the
+command does is try to identify audio paragraphs and combine them into
+single timestamp snippets.
+#+end_quote
 
 *** Dealing with manual timestamps
 
-If you have text representations of timestamps in the form hh:mm:ss,
+If you have text representations of timestamps in the form /hh:mm:ss/,
 and want to convert them to links that can be used by this package,
-select the region spanning the timestamps and run command M-x
+select the region spanning the timestamps and run command ~M-x~
 =org-mpv-notes-replace-timestamp-with-link=. It will prompt you for a
 text string representing the link URI.
+
+*** Dealing with a changed path or file name
+
+If a media file to which you had linked has since been renamed or
+moved, place POINT on one of the now-broken links and run command ~M-x~
+=org-mpv-notes-change-link-reference=. It will ask you for the new
+path-spec and make the change for that link only. In order to perform
+the change on all occurrences in the org-mode file, run the command
+~C-u M-x~ =org-mpv-notes-change-link-reference=.
