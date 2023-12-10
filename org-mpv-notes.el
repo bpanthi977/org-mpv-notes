@@ -48,6 +48,11 @@
         (cl-find 'mpv features))))
 
 
+(defcustom org-mpv-notes-mpv-startup-wait 0.1
+  "How many seconds to wait for mpv to start, before sending seek or other commands."
+  :type 'float
+  :group 'org-mpv-notes)
+
 (defun org-mpv-notes--cmd (cmd &rest args)
   "Run a mpv command `CMD' (with `ARGS') synchronously."
   (or (and (cl-find 'mpv features)
@@ -162,12 +167,11 @@ For html exports, YouTube links are converted to thumbnails.
                (start path))
               ((not (string-equal (org-mpv-notes--get-property "path") path))
                (kill)
-               (sleep-for 0.05)
+               (sleep-for org-mpv-notes-empv-wait-interval)
                (start path)))
         ;; Jump to link
-        (when secs
-          (sleep-for 0.05)
-          (seek secs))))))
+          (sleep-for org-mpv-notes-empv-wait-interval)
+          (seek (or secs 0))))))
 
 ;;;;;
 ;;; Screenshot
