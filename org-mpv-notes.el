@@ -333,9 +333,7 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
          (timestamp (format "%02d:%02d:%02d" h m s))
          (description ""))
     (when org-mpv-notes-pause-on-link-create
-      (if mpv-backend
-        (mpv-pause))
-       (empv-pause))
+      (org-mpv-notes-pause))
     (when read-description
       (setq description (read-string "Description: ")))
     (when (string-equal description "")
