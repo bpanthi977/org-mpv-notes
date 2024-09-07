@@ -41,10 +41,6 @@
   :group 'org-link
   :prefix "org-mpv-notes-")
 
-(defcustom org-mpv-notes-mpv-startup-wait 0.1
-  "How many seconds to wait for mpv to start, before sending seek or other commands."
-  :type 'float)
-
 (defcustom org-mpv-notes-empv-wait-interval 0.1
   "How many seconds to wait for mpv to settle.
 This may be necessary because much of the empv library runs
@@ -92,7 +88,8 @@ mpv for details."
 ;;;;;
 
 ;; from https://github.com/kljohann/mpv.el/wiki
-;;  To create a mpv: link type that is completely analogous to file: links but opens using mpv-play instead,
+;;  To create a mpv: link type that is completely analogous to file: links but opens using mpv-play instead
+
 (defun org-mpv-notes-complete-link (&optional arg)
   "Provide completion to mpv: link in `org-mode'.
 ARG is passed to `org-link-complete-file'."
@@ -127,12 +124,19 @@ For html exports, YouTube links are converted to thumbnails.
 (defvar org-mpv-notes-timestamp-regex "[0-9]+:[0-9]+:[0-9]+")
 
 (defun org-mpv-notes--parse-link (path)
-  "Parse the org-link `PATH' to extract the media path and timestamp."
+  "Parse the org-link `PATH' to extract the media path and timestamp.
+Timestamp can exist at the end of `PATH' with `::' as separator.
+Timestamp can be in two formats: hh:mm:ss or ss
+
+Returns path (string)
+        timestamp in seconds (integer or nil)."
   (let (search-option
         (secs nil))
+    ;; 1. Find the timestamp
     (when (string-match "::\\(.*\\)\\'" path)
       (setq search-option (match-string 1 path))
       (setq path (replace-match "" nil nil path)))
+    ;; 2. Parse the timestamp
     (cond ((null search-option) nil)
           ((string-match (concat "^" org-mpv-notes-timestamp-regex) search-option)
            (setf secs (org-timer-hms-to-secs search-option)))
@@ -151,20 +155,10 @@ For html exports, YouTube links are converted to thumbnails.
           (mpv-default-option (format " %s" org-mpv-notes-mpv-args))
           (empv-mpv-args (when (boundp 'empv-mpv-args)
                            (append empv-mpv-args org-mpv-notes-mpv-args))))
-      (cl-flet ((alive? ()
-                  (if (eql backend 'mpv)
-                      (mpv-live-p)
-                    (empv--running?)))
-
-                (start (path)
+      (cl-flet ((start (path)
                   (if (eql backend 'mpv)
                       (mpv-start path)
                     (empv-start path)))
-
-                (kill ()
-                  (if (eql backend 'mpv)
-                      (mpv-kill)
-                    (empv-exit)))
 
                 (seek (secs)
                   (if (eql backend 'mpv)
@@ -172,15 +166,16 @@ For html exports, YouTube links are converted to thumbnails.
                     (empv-seek secs '("absolute")))))
 
         ;; Open mpv player
-        (cond ((not (alive?))
+        (cond ((not (org-mpv-notes--active-backend t))
                (start path))
               ((not (string-equal (org-mpv-notes--get-property "path") path))
-               (kill)
+               (org-mpv-notes-kill)
                (sleep-for org-mpv-notes-empv-wait-interval)
                (start path)))
         ;; Jump to link
-          (sleep-for org-mpv-notes-empv-wait-interval)
-          (seek (or secs 0))))))
+        (sleep-for org-mpv-notes-empv-wait-interval)
+        (when secs
+          (seek secs))))))
 
 ;;;;;
 ;;; Screenshot
