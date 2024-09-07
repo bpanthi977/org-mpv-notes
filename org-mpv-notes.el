@@ -31,22 +31,9 @@
 (require 'org-element)
 (require 'org-timer)
 
-
 ;;;;;
-;;; MPV and EMPV Compatibility Layer
+;;; Config
 ;;;;;
-(defcustom org-mpv-notes-preferred-backend 'empv
-   "The preferred mpv library to open new media with."
-  :type 'symbol
-  :options '(mpv empv))
-
-(defun org-mpv-notes--backend ()
-  "Get the mpv backend to open media with."
-  (if (eql org-mpv-notes-preferred-backend 'mpv)
-      (cl-find 'mpv features)
-    (or (cl-find 'empv features)
-        (cl-find 'mpv features))))
-
 
 (defgroup org-mpv-notes nil
   "Options concerning mpv links in Org mode."
@@ -67,6 +54,11 @@ asynchronously."
             (when (> 0 (floor (widget-value w)))
               (widget-put w :error "Must be a positive number")
               w))))
+
+(defcustom org-mpv-notes-preferred-backend 'empv
+   "The preferred mpv library to open new media with."
+  :type 'symbol
+  :options '(mpv empv))
 
 (defcustom org-mpv-notes-mpv-args '("--no-terminal"
                                     "--idle"
@@ -242,14 +234,6 @@ For html exports, YouTube links are converted to thumbnails.
 ;;; Screenshot
 ;;;;;
 
-(defun org-mpv-notes-save-as-attach (file)
-  "Save image FILE to org file using `org-attach'."
-  ;; attach it
-  (let ((org-attach-method 'mv))
-    (org-attach-attach file))
-  ;; insert the link
-  (insert "[[attachment:" (file-name-base file) "." (file-name-extension file) "]]"))
-
 (defcustom org-mpv-notes-save-image-function
   #'org-mpv-notes-save-as-attach
   "Function that saves screenshot image file to org buffer.
@@ -258,6 +242,14 @@ the file to proper location and insert a link to that file."
   :type '(function)
   :options '(#'org-mpv-notes-save-as-attach
              #'org-download-image))
+
+(defun org-mpv-notes-save-as-attach (file)
+  "Save image FILE to org file using `org-attach'."
+  ;; attach it
+  (let ((org-attach-method 'mv))
+    (org-attach-attach file))
+  ;; insert the link
+  (insert "[[attachment:" (file-name-base file) "." (file-name-extension file) "]]"))
 
 ;; save screenshot as attachment
 (defun org-mpv-notes-save-screenshot ()
