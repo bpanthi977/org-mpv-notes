@@ -24,8 +24,9 @@ If `NOTHROW' is true, no error is thrown when an active backend is not found."
                    (empv--running?)
                    'empv))
             (throw-error ()
-              (error "Error: no mpv instance detected.
-Please open a audio/video in either mpv or empv library")))
+              (unless nothrow
+                (error "Error: no mpv instance detected.
+Please open a audio/video in either mpv or empv library"))))
     (case org-mpv-notes-preferred-backend
       (empv (or (check-empv) (check-mpv) (throw-error)))
       (mpv (or (check-mpv) (check-empv) (throw-error)))
