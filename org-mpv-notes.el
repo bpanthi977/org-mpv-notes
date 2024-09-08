@@ -82,7 +82,9 @@ mpv for details."
                  (widget-put w :error "All elements must be command line option strings, eg. --foo")
                  w))))))
 
-
+(defcustom org-mpv-notes-seek-step 5
+  "Step size in seconds used when seeking."
+  :type 'number)
 
 ;;;;;
 ;;; Opening Link & Interface with org link
@@ -415,21 +417,45 @@ within the current buffer."
 ;;;;;
 ;;; Minor Mode and Keymap
 ;;;;;
+(defvar org-mpv-notes-key-bindings
+  `(;; Inserting links
+    ("i" . org-mpv-notes-insert-link)
+    ("M-i" . org-mpv-notes-insert-note)
+
+    ;; Traversing links
+    ("=" . org-mpv-notes-this-timestamp)
+    ("<left>" . org-mpv-notes-previous-timestamp)
+    ("p" . org-mpv-notes-previous-timestamp)
+    ("<right>" . org-mpv-notes-next-timestamp)
+    ("n" . org-mpv-notes-next-timestamp)
+
+    ;; Screenshot and OCR
+    ("s" .  org-mpv-notes-save-screenshot)
+    ("M-s" .  org-mpv-notes-screenshot-ocr)
+
+    ;; Seeking
+    ("f" . org-mpv-notes-seek-forward)
+    ("b" . org-mpv-notes-seek-backward)
+    ("a" . org-mpv-notes-halve-seek-step)
+    ("d" . org-mpv-notes-double-seek-step)
+
+    ;; other mpv controls
+    ("q" . keyboard-quit)
+    ("F" . org-mpve-notes-toggle-fullscreen)
+    ("SPC" .  org-mpv-notes-pause)
+    ("]" . org-mpv-speed-up)
+    ("[" . org-mpv-speed-down)
+    ("k" . org-mpv-notes-kill)))
+
+(define-prefix-command 'org-mpv-notes-prefix-map)
+(cl-loop for (key . command) in org-mpv-notes-key-bindings do
+         (define-key org-mpv-notes-prefix-map (kbd key) command))
 
 ;;;###autoload
 (define-minor-mode org-mpv-notes-mode
   "Org minor mode for Note taking alongside audio and video.
 Uses mpv.el to control mpv process"
-  :keymap `((,(kbd "M-n i")       . org-mpv-notes-insert-link)
-            (,(kbd "M-n M-i")     . org-mpv-notes-insert-note)
-            (,(kbd "M-n =")       . org-mpv-notes-this-timestamp)
-            (,(kbd "M-n <left>")  . org-mpv-notes-previous-timestamp)
-            (,(kbd "M-n <right>") . org-mpv-notes-next-timestamp)
-            (,(kbd "M-n s")       . org-mpv-notes-save-screenshot)
-            (,(kbd "M-n M-s")     . org-mpv-notes-screenshot-ocr)
-            (,(kbd "M-n SPC")     . org-mpv-notes-pause)
-            (,(kbd "M-n k")       . org-mpv-notes-kill)))
-
+  :keymap `((,(kbd "M-n") . org-mpv-notes-prefix-map)))
 
 
 
