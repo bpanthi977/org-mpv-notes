@@ -76,13 +76,22 @@ For a list of mpv commands see:
   "Send a command to update mpv `PROPERTY' to `VALUE'."
   (org-mpv-notes--cmd "set_property" property value))
 
+(defun org-mpv-notes--playback-timestamp ()
+  (let* ((time (org-mpv-notes--get-property "playback-time"))
+         (h (floor (/ time 3600)))
+         (m (floor (/ (mod time 3600) 60)))
+         (s (floor (mod time 60))))
+    (format "%02d:%02d:%02d" h m s)))
+
 (defun org-mpv-notes-seek-forward ()
   "Seek (i.e. skip) forward in the video/audio."
-  (org-mpv-notes--cmd-async "seek" org-mpv-notes-seek-step "relative"))
+  (org-mpv-notes--cmd-async "seek" org-mpv-notes-seek-step "relative")
+  (message "org-mpv-notes: Playback is now at %s" (org-mpv-notes--playback-timestamp)))
 
 (defun org-mpv-notes-seek-backward ()
   "Seek (i.e. skip) backwards in video/audio."
-  (org-mpv-notes--cmd-async "seek" (- org-mpv-notes-seek-step) "relative"))
+  (org-mpv-notes--cmd-async "seek" (- org-mpv-notes-seek-step) "relative")
+  (message "org-mpv-notes: Playback is now at %s" (org-mpv-notes--playback-timestamp)))
 
 (defun org-mpv-notes-halve-seek-step ()
   "Decrease seek step size by a factor of 2."
@@ -101,11 +110,15 @@ For a list of mpv commands see:
 (defun org-mpv-notes-speed-up ()
   "Increase playback speed by 1.1 factor."
   (interactive)
-  (mpv-set-property "speed" (* 1.1 (mpv-get-property "speed"))))
+  (let ((new-speed (* 1.1 (mpv-get-property "speed"))))
+    (mpv-set-property "speed" new-speed)
+    (message "org-mpv-notes: Playback speed is %.3f" new-speed)))
 
 (defun org-mpv-notes-speed-down ()
   "Decrease playback speed by 1.1 factor."
   (interactive)
-  (mpv-set-property "speed" (/ (mpv-get-property "speed") 1.1)))
+  (let ((new-speed (/ (mpv-get-property "speed") 1.1)))
+    (mpv-set-property "speed" new-speed)
+    (message "org-mpv-notes: Playback speed is %.3f" new-speed)))
 
 (provide 'org-mpv-notes-compat)
