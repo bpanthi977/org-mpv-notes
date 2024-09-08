@@ -460,10 +460,10 @@ within the current buffer."
 
     ;; other mpv controls
     ("q" . keyboard-quit)
-    ("F" . org-mpve-notes-toggle-fullscreen)
+    ("F" . org-mpv-notes-toggle-fullscreen)
     ("SPC" .  org-mpv-notes-pause)
-    ("]" . org-mpv-speed-up)
-    ("[" . org-mpv-speed-down)
+    ("]" . org-mpv-notes-speed-up)
+    ("[" . org-mpv-notes-speed-down)
     ("k" . org-mpv-notes-kill)))
 
 (define-prefix-command 'org-mpv-notes-prefix-map)
@@ -475,9 +475,6 @@ within the current buffer."
   "Org minor mode for Note taking alongside audio and video.
 Uses mpv.el to control mpv process"
   :keymap `((,(kbd "M-n") . org-mpv-notes-prefix-map)))
-
-
-
 
 (provide 'org-mpv-notes)
 
