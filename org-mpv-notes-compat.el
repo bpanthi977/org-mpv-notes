@@ -46,13 +46,26 @@ Please open a audio/video using org-mpv-notes-open"))))
     (mpv (mpv-kill))
     (empv (empv-exit))))
 
+(defun org-mpv-notes--empv-cmd-sync (cmd max-time)
+  (cl-block return-block
+    (empv--send-command
+     cmd
+     (lambda (response)
+       (cl-return-from return-block
+         response)))
+    (let ((waiting-for 0))
+      (while (and (empv--running?) (< waiting-for max-time))
+        (sleep-for 0.05)
+        (incf waiting-for 0.05)))))
+
 (defun org-mpv-notes--cmd (cmd &rest args)
   "Run a mpv command `CMD' (with `ARGS') synchronously."
   (case (org-mpv-notes--active-backend)
     (mpv (apply #'mpv-run-command cmd args)
          t)
-    (empv (empv--send-command-sync (list cmd args))
-          t)))
+    (empv
+     (org-mpv-notes--empv-cmd-sync (cons cmd args) 1)
+     t)))
 
 (defun org-mpv-notes--cmd-async (cmd &rest args)
   "Run a mpv command `CMD' (with `ARGS') synchronously.
@@ -62,19 +75,18 @@ For a list of mpv commands see:
   (case (org-mpv-notes--active-backend)
     (mpv (mpv--enqueue (cons cmd args) #'ignore)
          t)
-    (empv (empv--send-command (list cmd args))
+    (empv (empv--send-command (cons cmd args))
           t)))
 
 (defun org-mpv-notes--get-property (property)
   "Get the value of mpv `PROPERTY' from current player."
   (case (org-mpv-notes--active-backend)
     (mpv (mpv-get-property property))
-    (empv (with-timeout (1 nil)
-            (empv--send-command-sync (list "get_property" property))))))
+    (empv (org-mpv-notes--empv-cmd-sync (list "get_property" property) 1))))
 
 (defun org-mpv-notes--set-property (property value)
   "Send a command to update mpv `PROPERTY' to `VALUE'."
-  (org-mpv-notes--cmd "set_property" property value))
+  (org-mpv-notes--cmd-async "set_property" property value))
 
 (defun org-mpv-notes--playback-timestamp ()
   (let* ((time (org-mpv-notes--get-property "playback-time"))
@@ -110,15 +122,15 @@ For a list of mpv commands see:
 (defun org-mpv-notes-speed-up ()
   "Increase playback speed by 1.1 factor."
   (interactive)
-  (let ((new-speed (* 1.1 (mpv-get-property "speed"))))
-    (mpv-set-property "speed" new-speed)
+  (let ((new-speed (* 1.1 (org-mpv-notes--get-property "speed"))))
+    (org-mpv-notes--set-property "speed" new-speed)
     (message "org-mpv-notes: Playback speed is %.3f" new-speed)))
 
 (defun org-mpv-notes-speed-down ()
   "Decrease playback speed by 1.1 factor."
   (interactive)
-  (let ((new-speed (/ (mpv-get-property "speed") 1.1)))
-    (mpv-set-property "speed" new-speed)
+  (let ((new-speed (/ (org-mpv-notes--get-property "speed") 1.1)))
+    (org-mpv-notes--set-property "speed" new-speed)
     (message "org-mpv-notes: Playback speed is %.3f" new-speed)))
 
 (provide 'org-mpv-notes-compat)
