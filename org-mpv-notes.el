@@ -103,7 +103,7 @@ ARG is passed to `org-link-complete-file'."
 
 (org-link-set-parameters "mpv"
                          :complete #'org-mpv-notes-complete-link
-                         :follow #'org-mpv-notes-open
+                         :follow #'org-mpv-notes--open
                          :export #'org-mpv-notes-export)
 
 ;; adapted from https://bitspook.in/blog/extending-org-mode-to-handle-youtube-links/
@@ -147,10 +147,9 @@ Returns path (string)
            (setf secs (string-to-number search-option))))
     (values path (and secs (> secs 0) secs))))
 
-(defun org-mpv-notes-open (path &optional arg)
+(defun org-mpv-notes--open (path &optional arg)
   "Open the mpv `PATH'.
 `ARG' is required by org-follow-link but is ignored here."
-  (interactive "fMedia Path:")
   (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
     ;; Enable Minor mode
     (org-mpv-notes-mode t)
@@ -159,6 +158,7 @@ Returns path (string)
           (empv-mpv-args (when (boundp 'empv-mpv-args)
                            (append empv-mpv-args org-mpv-notes-mpv-args))))
       (cl-flet ((start (path)
+                  (message "org-mpv-notes: Opening %s" path)
                   (if (eql backend 'mpv)
                       (mpv-start path)
                     (empv-start path)))
@@ -179,6 +179,25 @@ Returns path (string)
         (sleep-for org-mpv-notes-empv-wait-interval)
         (when secs
           (seek secs))))))
+
+;;;###autoload
+(defun org-mpv-notes-open (&optional path)
+  (interactive)
+  (if path
+      (org-mpv-notes--open path)
+    (let ((choice (completing-read "Choose media source:" (list "File" "URL") nil t)))
+      (cond ((string-equal-ignore-case choice "File")
+             (let ((open-file (lambda (path)
+                                (interactive "fMedia File:" org-mode)
+                                (insert (concat "[[mpv:" path "]]"))
+                                (org-mpv-notes--open path))))
+               (call-interactively open-file)))
+            ((string-equal-ignore-case choice "URL")
+             (let ((open-url (lambda (url)
+                               (interactive "sURL: " url)
+                               (insert (concat "[[mpv:" url "]]"))
+                               (org-mpv-notes--open url))))
+               (call-interactively open-url)))))))
 
 ;;;;;
 ;;; Screenshot
@@ -298,7 +317,7 @@ If there is no timestamp at POINT, consider the previous one as
   (interactive)
   (cond
    ((org-mpv-notes--timestamp-p)
-     (org-mpv-notes-open (org-element-property :path (org-element-context)))
+     (org-mpv-notes--open (org-element-property :path (org-element-context)))
      (org-show-entry)
      (recenter))
    (t
