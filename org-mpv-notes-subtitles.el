@@ -12,10 +12,10 @@ This function is meant to be called by function
     (while (re-search-forward "<text start=\"\\([0-9]+\\)[^>]*>" nil t)
       (setq secs (string-to-number (match-string 1)))
       (replace-match
-        (format "\n\n%02d:%02d:%02d "
-                (floor (/ secs 3600))          ;; hours
-                (floor (/ (mod secs 3600) 60)) ;; minutes
-                (floor (mod secs 60))))))      ;; seconds
+       (format "\n\n%02d:%02d:%02d "
+               (floor (/ secs 3600))          ;; hours
+               (floor (/ (mod secs 3600) 60)) ;; minutes
+               (floor (mod secs 60))))))      ;; seconds
   ;; 3: Remove cruft html from body
   (goto-char (point-min))
   (while (re-search-forward "</text>" nil t)
@@ -37,10 +37,10 @@ This function is meant to be called by function
     (while (re-search-forward "<text t=\"\\([0-9]+\\)[^>]*>" nil t)
       (setq secs (string-to-number (substring (match-string 1) 0 -3)))
       (replace-match
-        (format "\n\n%02d:%02d:%02d "
-                (floor (/ secs 3600))          ;; hours
-                (floor (/ (mod secs 3600) 60)) ;; minutes
-                (floor (mod secs 60))))))      ;; seconds
+       (format "\n\n%02d:%02d:%02d "
+               (floor (/ secs 3600))          ;; hours
+               (floor (/ (mod secs 3600) 60)) ;; minutes
+               (floor (mod secs 60))))))      ;; seconds
   ;; 3: Remove cruft html from body
   (goto-char (point-min))
   (while (re-search-forward "</text>" nil t)
@@ -62,10 +62,10 @@ This function is meant to be called by function
     (while (re-search-forward "<p t=\"\\([0-9]+\\)[^>]*>" nil t)
       (setq secs (string-to-number (substring (match-string 1) 0 -3)))
       (replace-match
-        (format "\n%02d:%02d:%02d "
-                (floor (/ secs 3600))          ;; hours
-                (floor (/ (mod secs 3600) 60)) ;; minutes
-                (floor (mod secs 60))))))      ;; seconds
+       (format "\n%02d:%02d:%02d "
+               (floor (/ secs 3600))          ;; hours
+               (floor (/ (mod secs 3600) 60)) ;; minutes
+               (floor (mod secs 60))))))      ;; seconds
   ;; 3: Remove cruft html from body
   (goto-char (point-min))
   (while (re-search-forward "</p>" nil t)
@@ -126,14 +126,14 @@ This function is meant to be called by function
       (setq temp-buffer (current-buffer))
       (insert-file-contents file)
       (cond
-        ((string= "json3" format) (error "Error: Unsupported format"))
-        ((string= "srt" format)   (error "Error: Unsupported format"))
-        ((string= "srv1" format)  (org-mpv-notes--subtitles-insert-srv1))
-        ((string= "srv2" format)  (org-mpv-notes--subtitles-insert-srv2))
-        ((string= "srv3" format)  (org-mpv-notes--subtitles-insert-srv3))
-        ((string= "ttml" format)  (org-mpv-notes--subtitles-insert-ttml))
-        ((string= "vtt" format)   (org-mpv-notes--subtitles-insert-vtt))
-        (t (error "Error: Unrecognized subtitle format")))
+       ((string= "json3" format) (error "Error: Unsupported format"))
+       ((string= "srt" format)   (error "Error: Unsupported format"))
+       ((string= "srv1" format)  (org-mpv-notes--subtitles-insert-srv1))
+       ((string= "srv2" format)  (org-mpv-notes--subtitles-insert-srv2))
+       ((string= "srv3" format)  (org-mpv-notes--subtitles-insert-srv3))
+       ((string= "ttml" format)  (org-mpv-notes--subtitles-insert-ttml))
+       ((string= "vtt" format)   (org-mpv-notes--subtitles-insert-vtt))
+       (t (error "Error: Unrecognized subtitle format")))
       ;; Remove timestamps from within paragraphs
       (goto-char (point-min))
       (while (re-search-forward "\\([^!:\\.\"…”] *\n\\)\n[0-9:]\\{8\\} " nil t)

@@ -54,7 +54,7 @@ asynchronously."
               w))))
 
 (defcustom org-mpv-notes-preferred-backend 'empv
-   "The preferred mpv library to open new media with."
+  "The preferred mpv library to open new media with."
   :type 'symbol
   :options '(mpv empv))
 
@@ -278,7 +278,7 @@ This affects functions `org-mpv-notes-next-timestamp' and
 
 (defun org-mpv-notes--timestamp-p ()
   "Return non-NIL if POINT is on a timestamp."
- (string-match "mpv" (or (org-element-property :type (org-element-context)) "")))
+  (string-match "mpv" (or (org-element-property :type (org-element-context)) "")))
 
 (defun org-mpv-notes-next-timestamp (&optional reverse)
   "Seek to next timestamp in the notes file.
@@ -296,14 +296,14 @@ This affects functions `org-mpv-notes-next-timestamp' and
                    (not (eq p (point))))
           (setq success t))
         (setq p (point)))
-     (when org-mpv-notes-narrow-timestamp-navigation
-       (widen)))
+      (when org-mpv-notes-narrow-timestamp-navigation
+        (widen)))
     (if (not success)
-      (error "Error: No %s link" (if reverse "prior" "next"))
-     (goto-char p)
-     (org-open-at-point)
-     (org-show-entry)
-     (recenter))))
+        (error "Error: No %s link" (if reverse "prior" "next"))
+      (goto-char p)
+      (org-open-at-point)
+      (org-show-entry)
+      (recenter))))
 
 (defun org-mpv-notes-previous-timestamp ()
   "Seek to previous timestamp in the notes file."
@@ -317,11 +317,11 @@ If there is no timestamp at POINT, consider the previous one as
   (interactive)
   (cond
    ((org-mpv-notes--timestamp-p)
-     (org-mpv-notes--open (org-element-property :path (org-element-context)))
-     (org-show-entry)
-     (recenter))
+    (org-mpv-notes--open (org-element-property :path (org-element-context)))
+    (org-show-entry)
+    (recenter))
    (t
-     (save-excursion (org-mpv-notes-previous-timestamp)))))
+    (save-excursion (org-mpv-notes-previous-timestamp)))))
 
 ;;;;;
 ;;; Creating Links
@@ -365,7 +365,7 @@ If `READ-DESCRIPTION' is true, ask for a link description from user."
 (defun org-mpv-notes-insert-note ()
   "Insert a heading with link & timestamp."
   (interactive)
-  (let ((link  (org-mpv-notes--create-link nil)))
+  (let ((link (org-mpv-notes--create-link nil)))
     (when link
       (org-insert-heading)
       (insert link))))
@@ -401,23 +401,23 @@ within the current buffer."
     ;; accidental changes.
     (error "Error: POINT is not within a timestamp link"))
   (let* ((target (org-link-escape
-                   (read-file-name "Correct target path?: " nil nil t)))
+                  (read-file-name "Correct target path?: " nil nil t)))
          (context (org-element-context))
          (old-link-path (split-string
-                          (or (org-element-property :path context)
-                              (error "Error: Failed to extract old path-name"))
-                          "::"))
+                         (or (org-element-property :path context)
+                             (error "Error: Failed to extract old path-name"))
+                         "::"))
          (old-path (if (/= 2 (length old-link-path))
-                     (error "Error: Failed to parse the old link")
-                    (org-link-escape (car old-link-path))))
+                       (error "Error: Failed to parse the old link")
+                     (org-link-escape (car old-link-path))))
          (p (point))
          here
          (replace-it
-           (lambda ()
-             (setq context (org-element-context))
-             (replace-string-in-region old-path target
-                                       (org-element-property :begin context)
-                                       (org-element-property :end context)))))
+          (lambda ()
+            (setq context (org-element-context))
+            (replace-string-in-region old-path target
+                                      (org-element-property :begin context)
+                                      (org-element-property :end context)))))
     (org-toggle-link-display)
     (cond
      (all-occurences
@@ -430,8 +430,8 @@ within the current buffer."
         (setq here (point)))
       (goto-char p))
      (t ; ie. (not all-occurences)
-       (funcall replace-it)))
-     (org-toggle-link-display)))
+      (funcall replace-it)))
+    (org-toggle-link-display)))
 
 ;;;;;
 ;;; Minor Mode and Keymap
