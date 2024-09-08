@@ -55,7 +55,9 @@ media file first, as long as you open the media file from within
 Emacs.
 
 At any point, you can control =mpv= either from within Emacs using the
-[[* Default keybindings][keybindings]] or corresponding commands.
+[[* Default keybindings][keybindings]] or corresponding commands. The controls allow you to move
+forward/backward in the video, pause/play and change the playback
+speed; all while sitting in your org buffer and taking notes.
 
 **** Default keybindings
 
