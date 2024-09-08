@@ -1,70 +1,123 @@
 * org-mpv-notes.el
 Take notes in [[https://orgmode.org/][org-mode]] from media files playing in [[https://mpv.io/][mpv]].
 
-From within org-mode, use this package to open a media file in =mpv=,
-and then create links to timestamps within that media file.
+From within org-mode, use this package to open a media (audio/video)
+file in =mpv=. Then you can create links in org file to specific
+timestamps within that media file. Later you can click on those links
+to open and jump to that timestamp within the audio/video. The media
+file can be any file format that =mpv= supports. It can even be link to
+a youtube video, or file on network (See [[https://mpv.io/manual/master/#protocols][protocols]] supported by mpv).
+
 Optionally, you can have =mpv= pause automatically when creating a
-timestamp link, allowing you to concentrate on your writing. You can
-also customize the appearance of a timestamp link, and whether the
-timestamp should reflect the instant you type the command or /n/
-seconds prior. The package allows you to take screenshots of the
-running media, which can be viewed as in-line images when running
-Emacs as a GUI program. You can configure the package to pipe a
-screenshot to an external OCR program and auto-magically insert the
-OCR-ed text to the org buffer. Once a timestamp is created, you can
-use it to open the media file and jump ("seek") directly to that point
-in the file.
-
-*** Dependencies
-
-+ Emacs =mpv= control :: This can be either [[https://github.com/kljohann/mpv.el][mpv.el]] or [[https://github.com/isamert/empv.el][empv.el]]. Both
-  are packages available on [[https://melpa.org/#/][MELPA]]. These packages also allow you to
-  directly control many features of =mpv= from within Emacs.
-
-+ External OCR program :: This is optional, and by default is
-  configured for [[https://tesseract-ocr.github.io/tessdoc/Home.html][tesseract]], probably available from your
-  distribution's repositories.
+timestamp link, allowing you to concentrate on your writing. The
+package allows you to take screenshots of the running media, which can
+be viewed as inline images when running Emacs as a GUI program. Also
+you can configure the package to pipe a screenshot to an external OCR
+program and auto-magically insert the OCR-ed text to the org buffer.
 
 *** Installation
 
 + This package is available on MELPA, so you should be able to install
   it from within Emacs.
 
+: M-x package-install RET org-mpv-notes
+
++ In addition to this, you have to install either [[https://github.com/kljohann/mpv.el][mpv.el]] or [[https://github.com/isamert/empv.el][empv.el]].
+  These package allow Emacs to open and control mpv. Both packages are
+  available on [[https://melpa.org/#/][MELPA]].
+
+: M-x package-install RET mpv
+
++ If you use [[https://github.com/jwiegley/use-package][use-package]] you can add the following to your config:
+#+begin_src elisp
+  (use-package org-mpv-notes
+    :commands (org-mpv-notes-mode org-mpv-notes-open))
+  (use-package mpv)
+#+end_src
+
+
 *** Use
 
-This package is pretty flexible, so it doesn't matter whether you open
-an org-mode buffer first or a media file first, as long as you open
-the media file from within Emacs, using either =mpv.el= or =empv.el=.
+While taking notes in an org buffer you can open a media (video/audio)
+using ~M-x~ =org-mpv-notes-open=. This will prompt for a media file and
+open it in mpv. Now can insert notes/links using ~M-x~
+=org-mpv-notes-insert-note= or ~M-x~ =org-mpv-notes-insert-link= or their
+corresponding [[* Default keybindings][keybindings]].
 
-You can start taking notes in an org buffer by first opening a media
-(video/audio) using =org-mpv-notes-open=. This will prompt for a media
-file and open it in mpv. Now can insert notes/links using ~M-x~
-=org-mpv-notes-insert-note= or ~M-x~ =org-mpv-notes-insert-link= or their corresponding [[* Default keybindings][keybindings]].
+If you already have a link for media file in the org buffer, you can
+open it by clicking with mouse, or ~M-x~ =org-open-at-point= (~C-c C-o~).
 
-Alternatively, you can directly call these functions and they will
-prompt you for a media file if none is open. The difference between
-the two is that the former will create an org-mode heading and an
-org-mode timestamp link to the beginning of the media file that you
-choose, and the latter will just create the link.
+Alternatively, you can open media file directly with either =mpv.el= or
+=empv.el= without using =org-mpv-notes-open= . This package is flexible,
+so it doesn't matter whether you open an org-mode buffer first or a
+media file first, as long as you open the media file from within
+Emacs.
 
-From that point on, you can add headings and timestamps as you wish.
-Same for the screenshot and OCR support. At any point, you can
-control =mpv= either from within Emacs (using =mpv.el= or =empv.el=) or
-directly.
+At any point, you can control =mpv= either from within Emacs using the
+[[* Default
+keybindings][keybindings]] or corresponding commands.
 
 **** Default keybindings
 
 The org-mpv-notes =minor-mode= binds the followings keys:
 
-| M-n i       | =org-mpv-notes-insert-link=        |
-| M-n M-i     | =org-mpv-notes-insert-note=        |
-| M-n =       | =org-mpv-notes-this-timestamp=     |
-| M-n <left>  | =org-mpv-notes-previous-timestamp= |
-| M-n <right> | =org-mpv-notes-next-timestamp=     |
-| M-n s       | =org-mpv-notes-save-screenshot=    |
-| M-n M-s     | =org-mpv-notes-screenshot-ocr=     |
-| M-n SPC     | =org-mpv-notes-pause=              |
-| M-n k       | =org-mpv-notes-kill=               |
+| M-n i   | =org-mpv-notes-insert-link=        | Insert link                                             |
+| M-n M-i | =org-mpv-notes-insert-note=        | Insert heading with link                                |
+| M-n SPC | =org-mpv-notes-pause=              | Pause/Resume playback                                   |
+| M-n k   | =org-mpv-notes-kill=               | Quit mpv                                                |
+| M-n =   | =org-mpv-notes-this-timestamp=     | Jump to the timestamp under cursor                      |
+| M-n p   | =org-mpv-notes-previous-timestamp= | Jump to previous timestamp found in buffer              |
+| M-n n   | =org-mpv-notes-next-timestamp=     | Jump to next timestamp found in in buffer               |
+| M-n s   | =org-mpv-notes-save-screenshot=    | Take screenshot and attach it as inline image           |
+| M-n M-s | =org-mpv-notes-screenshot-ocr=     | Run OCR on current frame, and insert the text in buffer |
+| M-n f   | =org-mpv-notes-seek-forward=       | Seek (i.e. Skip) forward in video                       |
+| M-n b   | =org-mpv-notes-seek-backward=      | Seek backwards in video                                 |
+| M-n a   | =org-mpv-notes-halve-seek-step=    | Decrease seek step size for next seek forward/backward  |
+| M-n d   | =org-mpv-notes-double-seek-step=   | Increase seek step size                                 |
+| M-n [   | =org-mpv-notes-speed-up=           | Increase playback speed                                 |
+| M-n ]   | =org-mpv-notes-speed-down=         | Decrease playback speed                                 |
+
+Optionally I like to use [[https://github.com/myuhe/smartrep.el][smartrep]] for keybindings. For that you can
+use the following use-package config:
+#+begin_src elisp
+  (use-package org-mpv-notes
+    :commands (org-mpv-notes-mode org-mpv-notes-open)
+    :config
+    (define-key org-mpv-notes-mode-map (kbd "M-n") (smartrep-map org-mpv-notes-key-bindings)))
+#+end_src
+
+*** Screenshot and OCR
+You can take screenshot of the video and place it as inline image in the org file by
+using ~M-x~ =org-mpv-notes-save-screenshot=. This will ask mpv to take a
+screenshot and then keep a link to the image in org using =org-attach=.
+Or if you use [[https://github.com/abo-abo/org-download][org-download]] you can integrate that by doing:
+
+: (setf org-mpv-notes-save-image-function #'org-download-image)
+
+This package can also use any external OCR tool to insert the text
+currently shown in the video frame. To do this try ~M-x~
+=org-mpv-screenshot-ocr.= The default configuration calls the [[https://tesseract-ocr.github.io/tessdoc/Home.html][tesseract]]
+program, which you can probably install from your distribution's
+repositories. See =org-mpv-notes-ocr-command= and
+=org-mpv-notes-ocr-command-args= to change the OCR program.
+
+*** Dealing with a changed path or file name
+
+If a media file to which you had linked has since been renamed or
+moved, place POINT on one of the now-broken links and run command ~M-x~
+=org-mpv-notes-change-link-reference=. It will ask you for the new
+path-spec and make the change for that link only. In order to perform
+the change on all occurrences in the org-mode file, run the command
+~C-u M-x~ =org-mpv-notes-change-link-reference=.
+
+
+*** Dealing with manual timestamps
+
+If you have text representations of timestamps in the form /hh:mm:ss/,
+and want to convert them to links that can be used by this package,
+select the region spanning the timestamps and run command ~M-x~
+=org-mpv-notes-replace-timestamp-with-link=. It will prompt you for a
+text string representing the link URI.
 
 *** Dealing with subtitles
 
@@ -85,20 +138,3 @@ This creates too many text interruptions for note-taking, so what the
 command does is try to identify audio paragraphs and combine them into
 single timestamp snippets.
 #+end_quote
-
-*** Dealing with manual timestamps
-
-If you have text representations of timestamps in the form /hh:mm:ss/,
-and want to convert them to links that can be used by this package,
-select the region spanning the timestamps and run command ~M-x~
-=org-mpv-notes-replace-timestamp-with-link=. It will prompt you for a
-text string representing the link URI.
-
-*** Dealing with a changed path or file name
-
-If a media file to which you had linked has since been renamed or
-moved, place POINT on one of the now-broken links and run command ~M-x~
-=org-mpv-notes-change-link-reference=. It will ask you for the new
-path-spec and make the change for that link only. In order to perform
-the change on all occurrences in the org-mode file, run the command
-~C-u M-x~ =org-mpv-notes-change-link-reference=.
