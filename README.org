@@ -86,6 +86,14 @@ use the following use-package config:
     (define-key org-mpv-notes-mode-map (kbd "M-n") (smartrep-map org-mpv-notes-key-bindings)))
 #+end_src
 
+*** Changing preferred backend
+By default =mpv.el= is used as the backend to play and control mpv. If =mpv.el= is
+not installed =empv.el= is used instead. If both are installed you can specify the
+preferred backend as follows:
+
+#+begin_src elisp
+  (setq org-mpv-notes-preferred-backend 'empv)
+#+end_src
 *** Screenshot and OCR
 You can take screenshot of the video and place it as inline image in the org file by
 using ~M-x~ =org-mpv-notes-save-screenshot=. This will ask mpv to take a
