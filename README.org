@@ -8,12 +8,13 @@ to open and jump to that timestamp within the audio/video. The media
 file can be any file format that =mpv= supports. It can even be link to
 a youtube video, or file on network (See [[https://mpv.io/manual/master/#protocols][protocols]] supported by mpv).
 
-Optionally, you can have =mpv= pause automatically when creating a
-timestamp link, allowing you to concentrate on your writing. The
-package allows you to take screenshots of the running media, which can
-be viewed as inline images when running Emacs as a GUI program. Also
-you can configure the package to pipe a screenshot to an external OCR
-program and auto-magically insert the OCR-ed text to the org buffer.
+Optionally, you can have =mpv= pause automatically
+(=org-mpv-notes-pause-on-link-create=) when creating a timestamp link,
+allowing you to concentrate on your writing. The package allows you to
+take screenshots of the running media, which can be viewed as inline
+images when running Emacs as a GUI program. Also you can configure the
+package to pipe a screenshot to an external OCR program and
+auto-magically insert the OCR-ed text to the org buffer.
 
 *** Installation
 
@@ -54,8 +55,7 @@ media file first, as long as you open the media file from within
 Emacs.
 
 At any point, you can control =mpv= either from within Emacs using the
-[[* Default
-keybindings][keybindings]] or corresponding commands.
+[[* Default keybindings][keybindings]] or corresponding commands.
 
 **** Default keybindings
 
