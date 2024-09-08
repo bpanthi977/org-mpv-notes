@@ -80,6 +80,10 @@ The org-mpv-notes =minor-mode= binds the followings keys:
 Optionally I like to use [[https://github.com/myuhe/smartrep.el][smartrep]] for keybindings. For that you can
 use the following use-package config:
 #+begin_src elisp
+  (use-package smartrep
+    :ensure t
+    :demand t)
+
   (use-package org-mpv-notes
     :commands (org-mpv-notes-mode org-mpv-notes-open)
     :config
