@@ -1,3 +1,19 @@
+;;; org-mpv-notes-subtitles.el --- Utility functions create links from subtitiles filed  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2021-2024 Bibek Panthi
+
+;; Author: Bibek Panthi <bpanthi977@gmail.com>
+;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
+;; URL: https://github.com/bpanthi977/org-mpv-notes
+
+;;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+;; Supports inserting subtitiles with mpv link to timestamps from
+;; srv1, srv2, srv3, ttml and vtt files
+
+;;; Code:
+
 (defun org-mpv-notes--subtitles-insert-srv1 ()
   "Edit srv1 formatted subtitle file for import.
 This function is meant to be called by function
@@ -147,3 +163,5 @@ This function is meant to be called by function
       (insert-into-buffer target-buffer))))
 
 (provide 'org-mpv-notes-subtitles)
+
+;;; org-mpv-notes-subtitles.el ends here

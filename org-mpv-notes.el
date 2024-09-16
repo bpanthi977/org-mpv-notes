@@ -1,6 +1,6 @@
 ;;; org-mpv-notes.el --- Take notes in org mode while watching videos in mpv -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2022 Bibek Panthi
+;; Copyright (C) 2021-2024 Bibek Panthi
 
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
