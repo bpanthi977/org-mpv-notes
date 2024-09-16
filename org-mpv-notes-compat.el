@@ -38,7 +38,7 @@ If `NOTHROW' is true, no error is thrown when an active backend is not found."
               (unless nothrow
                 (error "Error: no mpv instance detected.
 Please open a audio/video using org-mpv-notes-open"))))
-    (case org-mpv-notes-preferred-backend
+    (cl-case org-mpv-notes-preferred-backend
       (empv (or (check-empv) (check-mpv) (throw-error)))
       (mpv (or (check-mpv) (check-empv) (throw-error)))
       (t (error "Unkown backend %s in `org-mpv-notes-preferred-backend'" org-mpv-notes-preferred-backend)))))
@@ -46,14 +46,14 @@ Please open a audio/video using org-mpv-notes-open"))))
 (defun org-mpv-notes-pause ()
   "Toggle pause/run of the mpv instance."
   (interactive)
-  (case (org-mpv-notes--active-backend)
+  (cl-case (org-mpv-notes--active-backend)
     (mpv (mpv-pause))
     (empv (empv-toggle))))
 
 (defun org-mpv-notes-kill ()
   "Close the mpv instance."
   (interactive)
-  (case (org-mpv-notes--active-backend)
+  (cl-case (org-mpv-notes--active-backend)
     (mpv (mpv-kill))
     (empv (empv-exit))))
 
@@ -73,7 +73,7 @@ If the command takes more than `MAX-TIME' seconds, return NIL."
 
 (defun org-mpv-notes--cmd (cmd &rest args)
   "Run a mpv command `CMD' (with `ARGS') synchronously."
-  (case (org-mpv-notes--active-backend)
+  (cl-case (org-mpv-notes--active-backend)
     (mpv (apply #'mpv-run-command cmd args)
          t)
     (empv
@@ -85,7 +85,7 @@ If the command takes more than `MAX-TIME' seconds, return NIL."
 
 For a list of mpv commands see:
   https://github.com/mpv-player/mpv/blob/master/DOCS/man/input.rst#list-of-input-commands"
-  (case (org-mpv-notes--active-backend)
+  (cl-case (org-mpv-notes--active-backend)
     (mpv (mpv--enqueue (cons cmd args) #'ignore)
          t)
     (empv (empv--send-command (cons cmd args))
@@ -93,7 +93,7 @@ For a list of mpv commands see:
 
 (defun org-mpv-notes--get-property (property)
   "Get the value of mpv `PROPERTY' from current player."
-  (case (org-mpv-notes--active-backend)
+  (cl-case (org-mpv-notes--active-backend)
     (mpv (mpv-get-property property))
     (empv (org-mpv-notes--empv-cmd-sync (list "get_property" property) 1))))
 
