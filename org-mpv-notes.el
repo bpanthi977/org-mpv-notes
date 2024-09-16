@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.0.2
+;; Version: 0.0.3
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
@@ -146,7 +146,7 @@ Returns path (string)
            (setf secs (org-timer-hms-to-secs search-option)))
           ((string-match "^\\([0-9]+\\)$" search-option)
            (setf secs (string-to-number search-option))))
-    (values path (and secs (> secs 0) secs))))
+    (cl-values path (and secs (> secs 0) secs))))
 
 (defun org-mpv-notes--open (path &optional arg)
   "Open the mpv `PATH'.
@@ -183,6 +183,9 @@ Returns path (string)
 
 ;;;###autoload
 (defun org-mpv-notes-open (&optional path)
+  "Open a media file or URL and insert mpv: link for it in the bfufer.
+If `PATH' is provided, the path is used for the media,
+otherwise user is prompted for a File path or URL link."
   (interactive)
   (if path
       (org-mpv-notes--open path)
@@ -303,7 +306,7 @@ This affects functions `org-mpv-notes-next-timestamp' and
         (error "Error: No %s link" (if reverse "prior" "next"))
       (goto-char p)
       (org-open-at-point)
-      (org-show-entry)
+      (org-fold-show-entry)
       (recenter))))
 
 (defun org-mpv-notes-previous-timestamp ()
@@ -313,13 +316,12 @@ This affects functions `org-mpv-notes-next-timestamp' and
 
 (defun org-mpv-notes-this-timestamp ()
   "Seek to the timestamp at POINT or previous.
-If there is no timestamp at POINT, consider the previous one as
-'this' one."
+If there is no timestamp at POINT, consider the previous one as this one."
   (interactive)
   (cond
    ((org-mpv-notes--timestamp-p)
     (org-mpv-notes--open (org-element-property :path (org-element-context)))
-    (org-show-entry)
+    (org-fold-show-entry)
     (recenter))
    (t
     (save-excursion (org-mpv-notes-previous-timestamp)))))
