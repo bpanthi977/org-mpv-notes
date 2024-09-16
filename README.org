@@ -32,8 +32,11 @@ auto-magically insert the OCR-ed text to the org buffer.
 + If you use [[https://github.com/jwiegley/use-package][use-package]] you can add the following to your config:
 #+begin_src elisp
   (use-package org-mpv-notes
+    :ensure t
     :commands (org-mpv-notes-mode org-mpv-notes-open))
-  (use-package mpv)
+
+  (use-package mpv
+    :ensure t)
 #+end_src
 
 
@@ -87,6 +90,7 @@ use the following use-package config:
     :demand t)
 
   (use-package org-mpv-notes
+    :ensure t
     :commands (org-mpv-notes-mode org-mpv-notes-open)
     :config
     (define-key org-mpv-notes-mode-map (kbd "M-n") (smartrep-map org-mpv-notes-key-bindings)))
