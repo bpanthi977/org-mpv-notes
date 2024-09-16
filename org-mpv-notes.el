@@ -119,9 +119,10 @@ For html exports, YouTube links are converted to thumbnails.
       (cond ((or (not desc) (string-equal desc ""))
              (let* ((video-id (cadar (url-parse-query-string path)))
                     (url (if (string-empty-p video-id) path
-                           (format "//youtube.com/embed/%s" video-id))))
-               (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"https://www.youtube-nocookie.com/embed/lJIrF4YjHfQ\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
-                       url desc)))
+                           (format "https://www.youtube.com/embed/%s" video-id))))
+               (when url
+                 (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
+                         url desc))))
             (secs
              (format "<a href=\"%s&t=%ds\">%s</a>" path secs (substring-no-properties desc)))))))
 
