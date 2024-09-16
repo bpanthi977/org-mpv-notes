@@ -1,7 +1,18 @@
-;;;;;
-;;; MPV and EMPV Compatibility Layer
-;;;;;
+;;; org-mpv-notes-compat.el --- Utility functions to provide a thin interface over mpv and empv -*- lexical-binding: t -*-
 
+;; Copyright (C) 2021-2024 Bibek Panthi
+
+;; Author: Bibek Panthi <bpanthi977@gmail.com>
+;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
+;; URL: https://github.com/bpanthi977/org-mpv-notes
+
+;;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+;; This file has functions to find the currently active backend (mpv or empv)
+;; and send commands to the backend in a transparent way
+
+;;; Code:
 (defun org-mpv-notes--backend ()
   "Get the mpv backend to open media with."
   (if (eql org-mpv-notes-preferred-backend 'mpv)
@@ -47,6 +58,8 @@ Please open a audio/video using org-mpv-notes-open"))))
     (empv (empv-exit))))
 
 (defun org-mpv-notes--empv-cmd-sync (cmd max-time)
+  "Run the empv command `CMD' synchronously.
+If the command takes more than `MAX-TIME' seconds, return NIL."
   (cl-block return-block
     (empv--send-command
      cmd
@@ -89,6 +102,7 @@ For a list of mpv commands see:
   (org-mpv-notes--cmd-async "set_property" property value))
 
 (defun org-mpv-notes--playback-timestamp ()
+  "Return the playback timestamp of currently playing media."
   (let* ((time (org-mpv-notes--get-property "playback-time"))
          (h (floor (/ time 3600)))
          (m (floor (/ (mod time 3600) 60)))
@@ -134,3 +148,5 @@ For a list of mpv commands see:
     (message "org-mpv-notes: Playback speed is %.3f" new-speed)))
 
 (provide 'org-mpv-notes-compat)
+
+;;; org-mpv-notes-compat.el ends here
