@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.0.3
+;; Version: 0.0.4
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
@@ -160,11 +160,13 @@ Returns path (string)
           (empv-mpv-args (when (boundp 'empv-mpv-args)
                            (append empv-mpv-args org-mpv-notes-mpv-args))))
       (cl-flet ((start (path)
-                  (message "org-mpv-notes: Opening %s" path)
-                  (if (eql backend 'mpv)
-                      (mpv-start path)
-                    (empv-start path)))
-
+                  (let ((path (if (string-prefix-p "http" path)
+                                  path
+                                (file-truename path))))
+                    (message "org-mpv-notes: Opening %s" path)
+                    (if (eql backend 'mpv)
+                        (mpv-start path)
+                      (empv-start path))))
                 (seek (secs)
                   (if (eql backend 'mpv)
                       (mpv-seek secs)
