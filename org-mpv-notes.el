@@ -53,7 +53,7 @@ asynchronously."
               (widget-put w :error "Must be a positive number")
               w))))
 
-(defcustom org-mpv-notes-preferred-backend 'empv
+(defcustom org-mpv-notes-preferred-backend 'mpv
   "The preferred mpv library to open new media with."
   :type 'symbol
   :options '(mpv empv))
