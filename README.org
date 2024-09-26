@@ -33,12 +33,14 @@ auto-magically insert the OCR-ed text to the org buffer.
 #+begin_src elisp
   (use-package org-mpv-notes
     :ensure t
-    :commands (org-mpv-notes-mode org-mpv-notes-open))
+    :commands (org-mpv-notes-mode org-mpv-notes-open)
+    :hook (org-mode . org-mpv-notes-setup-link))
 
   (use-package mpv
     :ensure t)
 #+end_src
 
+  The hook on org-mode makes sure that mpv: links work in org-mode.
 
 *** Use
 
@@ -92,6 +94,7 @@ use the following use-package config:
   (use-package org-mpv-notes
     :ensure t
     :commands (org-mpv-notes-mode org-mpv-notes-open)
+    :hook (org-mode . org-mpv-notes-setup-link)
     :config
     (define-key org-mpv-notes-mode-map (kbd "M-n") (smartrep-map org-mpv-notes-key-bindings)))
 #+end_src

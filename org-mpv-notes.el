@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.0.4
+;; Version: 0.0.5
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
@@ -102,10 +102,13 @@ ARG is passed to `org-link-complete-file'."
    (org-link-complete-file arg)
    t t))
 
-(org-link-set-parameters "mpv"
-                         :complete #'org-mpv-notes-complete-link
-                         :follow #'org-mpv-notes--open
-                         :export #'org-mpv-notes-export)
+(defun org-mpv-notes-setup-link ()
+  (org-link-set-parameters "mpv"
+                           :complete #'org-mpv-notes-complete-link
+                           :follow #'org-mpv-notes--open
+                           :export #'org-mpv-notes-export))
+
+(org-mpv-notes-setup-link)
 
 ;; adapted from https://bitspook.in/blog/extending-org-mode-to-handle-youtube-links/
 (defun org-mpv-notes-export (path desc backend)
