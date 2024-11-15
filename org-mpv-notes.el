@@ -260,7 +260,7 @@ the file to proper location and insert a link to that file."
     (user-error "OCR program %S not found" org-mpv-notes-ocr-command))
   (with-temp-buffer
     (if (zerop (apply 'call-process (append (list org-mpv-notes-ocr-command nil t nil
-                             (file-truename file)) org-mpv-notes-ocr-command-args))))
+                             (file-truename file)) org-mpv-notes-ocr-command-args)))
         (remove ? (buffer-string))
       (error "OCR command failed: %S" (buffer-string)))))
 
