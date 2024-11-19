@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
@@ -259,8 +259,9 @@ the file to proper location and insert a link to that file."
   (unless (executable-find org-mpv-notes-ocr-command)
     (user-error "OCR program %S not found" org-mpv-notes-ocr-command))
   (with-temp-buffer
-    (if (zerop (call-process org-mpv-notes-ocr-command nil t nil
-                             (file-truename file) org-mpv-notes-ocr-command-args))
+    (if (zerop (apply #'call-process org-mpv-notes-ocr-command nil t nil
+                      (file-truename file)
+                      (split-string-shell-command org-mpv-notes-ocr-command-args)))
         (remove ? (buffer-string))
       (error "OCR command failed: %S" (buffer-string)))))
 
