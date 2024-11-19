@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
