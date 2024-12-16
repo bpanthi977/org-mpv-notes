@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.0.6
+;; Version: 0.1.6
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
@@ -87,6 +87,12 @@ mpv for details."
   "Step size in seconds used when seeking."
   :type 'number)
 
+(defcustom org-mpv-notes-export-path-translation #'identity
+  "Function that applies path translation to mpv: file link's when exporting to html.
+Function takes one argument `path' which is mpv: link's path without search string and returns translated path.
+
+This is useful to presever links if you have configured org mode to export html to different directory.")
+
 ;;;;;
 ;;; Opening Link & Interface with org link
 ;;;;;
@@ -103,6 +109,7 @@ ARG is passed to `org-link-complete-file'."
    t t))
 
 (defun org-mpv-notes-setup-link ()
+  "Setup mpv: link to be recognized by `org-mode'."
   (org-link-set-parameters "mpv"
                            :complete #'org-mpv-notes-complete-link
                            :follow #'org-mpv-notes--open
@@ -111,23 +118,48 @@ ARG is passed to `org-link-complete-file'."
 (org-mpv-notes-setup-link)
 
 ;; adapted from https://bitspook.in/blog/extending-org-mode-to-handle-youtube-links/
-(defun org-mpv-notes-export (path desc backend)
+(defun org-mpv-notes-export (path desc backend info)
   "Format mpv link while exporing.
 For html exports, YouTube links are converted to thumbnails.
 `PATH' and `DESC' are the mpv link and description.
-`BACKEND' is the export backend (html, latex, ...)"
-  (when (and (eq backend 'html)
-             (string-search "youtube.com/" path))
+`BACKEND' is the export backend (html, latex, ...)
+`INFO' is the export communication plist"
+  (when (eq backend 'html)
     (cl-multiple-value-bind (path secs) (org-mpv-notes--parse-link path)
-      (cond ((or (not desc) (string-equal desc ""))
-             (let* ((video-id (cadar (url-parse-query-string path)))
-                    (url (if (string-empty-p video-id) path
-                           (format "https://www.youtube.com/embed/%s" video-id))))
-               (when url
-                 (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
-                         url desc))))
-            (secs
-             (format "<a href=\"%s&t=%ds\">%s</a>" path secs (substring-no-properties desc)))))))
+      (cond ((string-search "youtube.com/" path)
+             (cond ((or (not desc) (string-equal desc ""))
+                    (let* ((video-id (cadar (url-parse-query-string path)))
+                           (url (if (string-empty-p video-id) path
+                                  (format "https://www.youtube.com/embed/%s" video-id))))
+                      (when url
+                        (format "<p style=\"text-align:center; width:100%%\"><iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen></iframe></p>"
+                                url desc))))
+                   (secs
+                    (format "<a href=\"%s&t=%ds\">%s</a>" path secs (substring-no-properties desc)))))
+            ((and (file-exists-p path) (not desc))
+             (let* ((hash (sxhash path))
+                    (seek (format "
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('video-%d');
+    video.currentTime = %d;
+    if (video.parentElement?.tagName == \"P\") {
+      video.setAttribute(\"width\", video.parentElement.getAttribute(\"width\"));
+      video.setAttribute(\"height\", video.parentElement.getAttribute(\"height\"));
+    }
+  });
+</script>
+"
+                                  hash (or secs 0))))
+               (format "
+<video controls id=\"video-%s\">
+  <source src=\"%s\">
+  Your browser does not support the video tag.
+</video>
+%s"
+                       hash
+                       (funcall org-mpv-notes-export-path-translation path)
+                       (or seek ""))))))))
 
 (defvar org-mpv-notes-timestamp-regex "[0-9]+:[0-9]+:[0-9]+")
 
