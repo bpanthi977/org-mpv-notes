@@ -5,7 +5,7 @@
 ;; Author: Bibek Panthi <bpanthi977@gmail.com>
 ;; Maintainer: Bibek Panthi <bpanthi977@gmail.com>
 ;; URL: https://github.com/bpanthi977/org-mpv-notes
-;; Version: 0.1.6
+;; Version: 0.1.7
 ;; Package-Requires: ((emacs "28.1"))
 ;; Kewords: mpv, org
 
@@ -140,17 +140,28 @@ For html exports, YouTube links are converted to thumbnails.
              (let* ((hash (sxhash path))
                     (seek (format "
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+{
+  const func = () => {
     const video = document.getElementById('video-%d');
     video.currentTime = %d;
     if (video.parentElement?.tagName == \"P\") {
       video.setAttribute(\"width\", video.parentElement.getAttribute(\"width\"));
       video.setAttribute(\"height\", video.parentElement.getAttribute(\"height\"));
+      if (video.parentElement.getAttribute(\"loop\"))
+           video.setAttribute(\"loop\", true);
+      if (video.parentElement.getAttribute(\"autoplay\"))
+           video.setAttribute(\"autoplay\", true);
     }
-  });
+  }
+
+  if (document.getElementById('video-%d'))
+    func();
+  else
+    document.addEventListener('DOMContentLoaded', func);
+}
 </script>
 "
-                                  hash (or secs 0))))
+                                  hash (or secs 0) hash)))
                (format "
 <video controls id=\"video-%s\">
   <source src=\"%s\">
